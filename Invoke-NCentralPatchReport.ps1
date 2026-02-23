@@ -97,6 +97,7 @@ param(
     [switch]$NoShow,
 
     # Tuning
+    [ValidateRange(1, 1000)]
     [int]$PageSize       = 100,
     [switch]$IncludeHealthy
 )

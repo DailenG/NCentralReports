@@ -62,9 +62,9 @@ function Get-NCPatchDetails {
         if ($null -eq $val) { $val = $entry.stringValue }
         if ($null -eq $val) { $val = $entry.data        }
 
-        switch ($key) {
-            'pme_status'           { $PMEStatus          = $val }
-            'pme_threshold_status' { $PMEThresholdStatus = $val }
+        switch -Wildcard ($key) {
+            { $_ -ieq 'pme_status' }           { $PMEStatus          = $val }
+            { $_ -ieq 'pme_threshold_status' } { $PMEThresholdStatus = $val }
         }
     }
 

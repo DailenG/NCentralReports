@@ -132,7 +132,10 @@ function Get-NCPagedResults {
 
         [hashtable]$QueryParams = @{},
 
-        [int]$PageSize = 100
+        [ValidateRange(1, 1000)]
+        [int]$PageSize = 100,
+
+        [int]$MaxPages = 500
     )
 
     $allItems   = [System.Collections.Generic.List[object]]::new()
@@ -188,6 +191,10 @@ function Get-NCPagedResults {
 
         if ($null -ne $totalItems -and $allItems.Count -ge $totalItems) { break }
         if ($itemArray.Count -lt $PageSize) { break }  # Last page was partial
+        if ($pageNumber -ge $MaxPages) {
+            Write-Warning "Get-NCPagedResults: reached MaxPages ($MaxPages) for $Endpoint — stopping to prevent runaway loop."
+            break
+        }
 
         $pageNumber++
 

@@ -41,11 +41,8 @@ function Get-NCApplianceTask {
     }
 
     # Log raw shape of task object on first call per session (verbose)
-    Write-Verbose "  Task $TaskId raw response (truncated): $(
-        ($response | ConvertTo-Json -Depth 3 -Compress).Substring(
-            0, [Math]::Min(500, ($response | ConvertTo-Json -Depth 3 -Compress).Length)
-        )
-    )..."
+    $responseJson = $response | ConvertTo-Json -Depth 3 -Compress
+    Write-Verbose "  Task $TaskId raw response (truncated): $($responseJson.Substring(0, [Math]::Min(500, $responseJson.Length)))..."
 
     return $response
 }

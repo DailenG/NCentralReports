@@ -18,6 +18,9 @@
 Thumbs.db
 .DS_Store
 
+# Test output
+Tests/TestResults.xml
+
 # Test scratch files
 scratch*.ps1
 test-*.ps1
