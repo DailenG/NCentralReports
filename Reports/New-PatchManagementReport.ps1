@@ -138,10 +138,15 @@ function New-PatchManagementReport {
                     }
                 }
                 New-HTMLPanel {
-                    New-HTMLChart -Title 'Issues by Customer' -Height 300 {
-                        New-ChartToolbar -Download
-                        New-ChartCategory -Name ($byCustomer | Select-Object -ExpandProperty Name)
-                        New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#e67e22'
+                    if ($byCustomer -and @($byCustomer).Count -gt 0) {
+                        New-HTMLChart -Title 'Issues by Customer' -Height 300 {
+                            New-ChartToolbar -Download
+                            New-ChartCategory -Name ($byCustomer | Select-Object -ExpandProperty Name)
+                            New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#e67e22'
+                        }
+                    }
+                    else {
+                        New-HTMLText -Text 'No customer issue data to chart.' -Color '#7f8c8d'
                     }
                 }
             }
@@ -209,7 +214,7 @@ function New-PatchManagementReport {
         }
 
         # ── Tab 4: All Devices ─────────────────────────────────────────────────
-        New-HTMLTab -Name 'All Devices' -IconSolid 'server' -Collapsed {
+        New-HTMLTab -Name 'All Devices' -IconSolid 'server' {
             New-HTMLSection -HeaderText "Complete Device Status ($total devices)" -CanCollapse {
                 if ($allRows -and @($allRows).Count -gt 0) {
                     $allDeviceRows = $allRows | Select-Object DeviceName, CustomerName, SiteName,
