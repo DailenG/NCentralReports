@@ -43,21 +43,43 @@ function Get-NCDevices {
 
     $queryParams = @{}
 
-    if ($CustomerId -gt 0) {
-        # Parameter name to confirm at runtime — may be 'customerId', 'organizationId', etc.
-        $queryParams['customerId'] = $CustomerId
-        Write-Verbose "Filtering devices by customerId=$CustomerId"
-    }
-
     if ($SiteId -gt 0) {
         # Parameter name to confirm at runtime — may be 'siteId', 'locationId', etc.
         $queryParams['siteId'] = $SiteId
-        Write-Verbose "Filtering devices by siteId=$SiteId"
+        Write-Verbose "Will apply siteId=$SiteId filter"
     }
 
-    Write-Verbose "Fetching devices from $BaseUri/api/devices"
-    $devices = Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/devices' `
+    # Use the customer-scoped endpoint when a CustomerId is given.
+    # GET /api/devices?customerId=X is ignored by the API; the correct pattern
+    # mirrors the sites endpoint: GET /api/customers/{id}/devices.
+    if ($CustomerId -gt 0) {
+        $endpoint = "/api/customers/$CustomerId/devices"
+        Write-Verbose "Fetching devices from customer-scoped endpoint: $endpoint"
+    }
+    else {
+        $endpoint = '/api/devices'
+        Write-Verbose "Fetching devices from $BaseUri/api/devices (all customers)"
+    }
+
+    $devices = Get-NCPagedResults -BaseUri $BaseUri -Endpoint $endpoint `
                                   -Headers $Headers -QueryParams $queryParams
+
+    # Client-side customer filter as a safety net — catches cases where the
+    # scoped endpoint is not supported and falls back to returning all devices.
+    if ($CustomerId -gt 0 -and @($devices).Count -gt 0) {
+        $before  = @($devices).Count
+        $scoped  = @($devices) | Where-Object {
+            ($_.customerId    -eq $CustomerId) -or
+            ($_.organizationId -eq $CustomerId) -or
+            ($_.clientId       -eq $CustomerId)
+        }
+        # Only apply the client-side filter if it actually narrows results;
+        # if nothing matches the ID fields the scoped endpoint already filtered correctly.
+        if ($scoped.Count -gt 0 -and $scoped.Count -lt $before) {
+            Write-Verbose "Client-side customer filter reduced $before → $($scoped.Count) devices"
+            $devices = $scoped
+        }
+    }
 
     if ($null -eq $devices -or @($devices).Count -eq 0) {
         Write-Warning "No devices returned. Check filters and token permissions."
