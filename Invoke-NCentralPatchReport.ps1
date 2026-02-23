@@ -101,7 +101,6 @@ param(
     [switch]$IncludeHealthy
 )
 
-Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ── Step 0: Validate prerequisites ────────────────────────────────────────────
