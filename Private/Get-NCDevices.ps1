@@ -49,39 +49,64 @@ function Get-NCDevices {
         Write-Verbose "Will apply siteId=$SiteId filter"
     }
 
-    # Use the customer-scoped endpoint when a CustomerId is given.
-    # GET /api/devices?customerId=X is ignored by the API; the correct pattern
-    # mirrors the sites endpoint: GET /api/customers/{id}/devices.
+    # Strategy: try the customer-scoped endpoint first, then fall back to the
+    # global endpoint with client-side filtering if the scoped one returns nothing.
+    $devices = @()
+
     if ($CustomerId -gt 0) {
-        $endpoint = "/api/customers/$CustomerId/devices"
-        Write-Verbose "Fetching devices from customer-scoped endpoint: $endpoint"
+        # Attempt 1 — customer-scoped URL (mirrors the /api/customers/{id}/sites pattern)
+        $scopedEndpoint = "/api/customers/$CustomerId/devices"
+        Write-Verbose "Attempt 1: customer-scoped endpoint $scopedEndpoint"
+        $devices = @(Get-NCPagedResults -BaseUri $BaseUri -Endpoint $scopedEndpoint `
+                                        -Headers $Headers -QueryParams $queryParams)
+
+        if ($devices.Count -gt 0) {
+            Write-Verbose "  Scoped endpoint returned $($devices.Count) device(s)"
+            # Log first device object so customer ID field name can be confirmed
+            Write-Verbose "  First device object: $($devices[0] | ConvertTo-Json -Depth 2 -Compress)"
+        }
+        else {
+            # Attempt 2 — global endpoint + client-side filter
+            Write-Verbose "  Scoped endpoint returned nothing — falling back to /api/devices with client-side filter"
+            $allDevices = @(Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/devices' `
+                                               -Headers $Headers -QueryParams $queryParams)
+
+            if ($allDevices.Count -gt 0) {
+                Write-Verbose "  Global endpoint returned $($allDevices.Count) total device(s)"
+                Write-Verbose "  First device object: $($allDevices[0] | ConvertTo-Json -Depth 2 -Compress)"
+
+                # Filter client-side — check all common customer ID field names
+                $devices = @($allDevices | Where-Object {
+                    ($_.customerId     -eq $CustomerId) -or
+                    ($_.organizationId  -eq $CustomerId) -or
+                    ($_.clientId        -eq $CustomerId) -or
+                    ($_.orgUnitId       -eq $CustomerId) -or
+                    ($_.customerUnitId  -eq $CustomerId)
+                })
+
+                if ($devices.Count -gt 0) {
+                    Write-Verbose "  Client-side filter matched $($devices.Count) device(s) for customerId=$CustomerId"
+                }
+                else {
+                    Write-Warning "Client-side customer filter found no matches for customerId=$CustomerId. " +
+                                  "Check the first device object in -Verbose output to find the correct customer ID field name."
+                    # Return all devices unfiltered so the report isn't silently empty;
+                    # the operator can inspect verbose output to identify the right field.
+                    $devices = $allDevices
+                }
+            }
+        }
     }
     else {
-        $endpoint = '/api/devices'
-        Write-Verbose "Fetching devices from $BaseUri/api/devices (all customers)"
-    }
-
-    $devices = Get-NCPagedResults -BaseUri $BaseUri -Endpoint $endpoint `
-                                  -Headers $Headers -QueryParams $queryParams
-
-    # Client-side customer filter as a safety net — catches cases where the
-    # scoped endpoint is not supported and falls back to returning all devices.
-    if ($CustomerId -gt 0 -and @($devices).Count -gt 0) {
-        $before  = @($devices).Count
-        $scoped  = @($devices) | Where-Object {
-            ($_.customerId    -eq $CustomerId) -or
-            ($_.organizationId -eq $CustomerId) -or
-            ($_.clientId       -eq $CustomerId)
-        }
-        # Only apply the client-side filter if it actually narrows results;
-        # if nothing matches the ID fields the scoped endpoint already filtered correctly.
-        if ($scoped.Count -gt 0 -and $scoped.Count -lt $before) {
-            Write-Verbose "Client-side customer filter reduced $before → $($scoped.Count) devices"
-            $devices = $scoped
+        $devices = @(Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/devices' `
+                                        -Headers $Headers -QueryParams $queryParams)
+        Write-Verbose "Global /api/devices returned $($devices.Count) device(s)"
+        if ($devices.Count -gt 0) {
+            Write-Verbose "First device object: $($devices[0] | ConvertTo-Json -Depth 2 -Compress)"
         }
     }
 
-    if ($null -eq $devices -or @($devices).Count -eq 0) {
+    if ($devices.Count -eq 0) {
         Write-Warning "No devices returned. Check filters and token permissions."
         return @()
     }
