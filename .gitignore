@@ -1,0 +1,23 @@
+# N-Central Reports — gitignore
+
+# Generated reports
+*.html
+
+# Environment / secrets
+.env
+*.env
+
+# PowerShell credential caches
+*.cred
+*.key
+
+# Editor / OS artifacts
+.vscode/
+*.swp
+*~
+Thumbs.db
+.DS_Store
+
+# Test scratch files
+scratch*.ps1
+test-*.ps1
