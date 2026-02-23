@@ -27,6 +27,7 @@ function New-PatchManagementReport {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
         [object[]]$ReportData,
 
         [Parameter(Mandatory)]
