@@ -1,4 +1,4 @@
-﻿function Get-NCDevices {
+function Get-NCDevices {
     <#
     .SYNOPSIS
         Returns devices from N-Central, with optional customer/site/name filtering.

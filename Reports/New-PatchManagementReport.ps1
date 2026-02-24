@@ -143,7 +143,6 @@
                     if ($byCustomer -and @($byCustomer).Count -gt 0) {
                         New-HTMLText -Text "🏢 Issues by Customer" -FontWeight bold
                         New-HTMLChart -Title 'Count' -Height 350 {
-                            New-ChartOptionBar -Horizontal
                             New-ChartToolbar -Download
                             New-ChartAxisX -Name ($byCustomer | Select-Object -ExpandProperty Name)
                             New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#2c3e50'

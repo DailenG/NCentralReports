@@ -1,4 +1,4 @@
-﻿function Get-NCAccessToken {
+function Get-NCAccessToken {
     <#
     .SYNOPSIS
         Exchanges a long-lived N-Central JWT for a short-lived Bearer access token.
@@ -43,7 +43,7 @@
         throw "Authentication request to $uri failed: $_"
     }
 
-    Write-Verbose "Raw auth response: $($response | ConvertTo-Json -Depth 5 -Compress)"
+    Write-Verbose "Raw auth response: $($response | ConvertTo-Json -Depth 5 -Compress -WarningAction SilentlyContinue)"
 
     # Field path inferred — confirm against live response via -Verbose output above.
     # Common alternatives: .tokens.access.token  /  .accessToken  /  .token

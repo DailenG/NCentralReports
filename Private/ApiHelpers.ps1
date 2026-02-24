@@ -1,4 +1,4 @@
-﻿function Invoke-NCRestMethod {
+function Invoke-NCRestMethod {
     <#
     .SYNOPSIS
         Wraps Invoke-RestMethod with exponential back-off retry for N-Central REST calls.
@@ -157,7 +157,7 @@ function Get-NCPagedResults {
 
         # Log raw shape on first page so field names can be confirmed
         if ($firstPage) {
-            Write-Verbose "  First-page raw response: $($response | ConvertTo-Json -Depth 4 -Compress)"
+            Write-Verbose "  First-page raw response: $($response | ConvertTo-Json -Depth 4 -Compress -WarningAction SilentlyContinue)"
             $firstPage = $false
         }
 

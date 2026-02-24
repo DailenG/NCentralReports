@@ -1,4 +1,4 @@
-﻿function Get-NCServiceMonitorStatus {
+function Get-NCServiceMonitorStatus {
     <#
     .SYNOPSIS
         Returns degraded Patch Status monitored-service entries for a device.
@@ -51,7 +51,7 @@
     }
 
     # Log raw shape of first service to allow field-name confirmation
-    Write-Verbose "  First monitored-service object: $($services[0] | ConvertTo-Json -Depth 4 -Compress)"
+    Write-Verbose "  First monitored-service object: $($services[0] | ConvertTo-Json -Depth 4 -Compress -WarningAction SilentlyContinue)"
 
     # Filter for Patch-related services only (strictly mapped to moduleName)
     $patchServices = $services | Where-Object {

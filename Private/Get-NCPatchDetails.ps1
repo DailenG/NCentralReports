@@ -1,4 +1,4 @@
-﻿function Get-NCPatchDetails {
+function Get-NCPatchDetails {
     <#
     .SYNOPSIS
         Extracts PME status fields from an N-Central appliance task object.
@@ -31,7 +31,7 @@
     $results = $TaskObject.serviceDetails
 
     if ($null -eq $results -or @($results).Count -eq 0) {
-        Write-Verbose "  No serviceDetails array found in task object. raw task: $($TaskObject | ConvertTo-Json -Depth 2 -Compress)"
+        Write-Verbose "  No serviceDetails array found in task object. raw task: $($TaskObject | ConvertTo-Json -Depth 2 -Compress -WarningAction SilentlyContinue)"
         return [PSCustomObject]@{
             PMEStatus          = 'Unknown'
             PMEThresholdStatus = 'Unknown'
@@ -40,7 +40,7 @@
     }
 
     Write-Verbose "  Task serviceDetails array has $(@($results).Count) entries"
-    Write-Verbose "  First result entry: $($results[0] | ConvertTo-Json -Depth 2 -Compress)"
+    Write-Verbose "  First result entry: $($results[0] | ConvertTo-Json -Depth 2 -Compress -WarningAction SilentlyContinue)"
 
     foreach ($entry in $results) {
         $key = $entry.detailName

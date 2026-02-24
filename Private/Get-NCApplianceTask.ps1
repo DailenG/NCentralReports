@@ -1,4 +1,4 @@
-﻿function Get-NCApplianceTask {
+function Get-NCApplianceTask {
     <#
     .SYNOPSIS
         Fetches the full appliance task object from N-Central.
@@ -41,7 +41,7 @@
     }
 
     # Log raw shape of task object on first call per session (verbose)
-    $responseJson = $response | ConvertTo-Json -Depth 3 -Compress
+    $responseJson = $response | ConvertTo-Json -Depth 3 -Compress -WarningAction SilentlyContinue
     Write-Verbose "  Task $TaskId raw response (truncated): $($responseJson.Substring(0, [Math]::Min(500, $responseJson.Length)))..."
 
     return $response
