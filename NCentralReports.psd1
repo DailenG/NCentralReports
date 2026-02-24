@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.7'
+    ModuleVersion     = '1.1.8'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.7: Fixed -NoShow flag for Excel reports opening in background.'
+            ReleaseNotes             = '1.1.8: Updated default OutputPath to TEMP dir, added -ExportBoth switch to generate and attach both HTML and Excel.'
 
             # Prerelease string of this module
             # Prerelease = ''

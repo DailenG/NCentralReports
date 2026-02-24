@@ -8,7 +8,7 @@ function Send-NCEReportEmail {
         Send-EmailMessage from the Mailozaurr module. 
         
     .PARAMETER FilePath
-        Absolute path to the generated report file.
+        Absolute path(s) to the generated report file(s). Comma separated string or array.
         
     .PARAMETER To
         Email recipient(s). Comma separated string or array.
@@ -25,7 +25,7 @@ function Send-NCEReportEmail {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$FilePath,
+        [string[]]$FilePath,
 
         [Parameter(Mandatory)]
         [string[]]$To,
@@ -55,12 +55,16 @@ function Send-NCEReportEmail {
         throw "The 'Mailozaurr' module is required to send emails. Please run: Install-Module Mailozaurr -Scope CurrentUser"
     }
 
-    if (-not (Test-Path $FilePath)) {
-        throw "Cannot find attachment at path: $FilePath"
+    $fileNames = @()
+    foreach ($path in $FilePath) {
+        if (-not (Test-Path $path)) {
+            throw "Cannot find attachment at path: $path"
+        }
+        $fileNames += Split-Path -Path $path -Leaf
     }
     
-    $fileName = Split-Path -Path $FilePath -Leaf
-    Write-Verbose "Preparing to email $fileName via $SmtpServer"
+    $namesJoined = $fileNames -join ', '
+    Write-Verbose "Preparing to email $namesJoined via $SmtpServer"
 
     $subject = "N-Central Patch Management Report - $((Get-Date).ToString('yyyy-MM-dd'))"
     $body = @"
