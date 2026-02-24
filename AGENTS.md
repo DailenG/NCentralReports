@@ -49,6 +49,26 @@ For example, pagination explicitly relies on the `.data` and `.totalItems` field
 
 ---
 
+## API Filtering (RSQL)
+
+N-Central APIs use **RSQL (RESTful Service Query Language)** for advanced filtering parameters like the `select` argument on GET requests (e.g., `/api/devices`).
+
+- **DO NOT** use comma-separated values like `select=customerId,in,1,2,3`.
+- **DO NOT** use JSON arrays like `select=["customerId","=",1]`.
+- **DO use RSQL syntax:** `select=customerId=in=(1,2,3)`.
+
+Common RSQL operators supported by N-Central:
+* `==` (equals)
+* `!=` (not equals)
+* `=in=` (one of provided values)
+* `=like=` (regex match)
+* `;` (AND compound)
+* `,` (OR compound)
+
+Example: `$queryParams['select'] = "customerId=in=($($CustomerIds -join ','))"`
+
+---
+
 ## Development Workflow
 
 ### Dot-source order (required when testing interactively)

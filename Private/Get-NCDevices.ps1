@@ -37,8 +37,9 @@
     }
 
     if ($CustomerIds.Count -gt 0) {
-        # Using the standard N-Central 'select' expression to query multiple customers at once
-        $queryParams['select'] = "customerId,in,$($CustomerIds -join ',')"
+        # Using the RSQL syntax required by N-Central 'select' filters
+        # e.g. customerId=in=(131,132)
+        $queryParams['select'] = "customerId=in=($($CustomerIds -join ','))"
     }
 
     $allDevices = @(Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/devices' `
