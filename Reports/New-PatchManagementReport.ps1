@@ -102,7 +102,7 @@
         New-HTMLTab -Name 'Overview' -IconSolid 'chart-pie' {
 
             # KPI cards
-            New-HTMLSection -Direction row -Invisible {
+            New-HTMLSection -Invisible -Density Compact {
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices Scanned' -Number $total `
                         -TitleColor '#7f8c8d' -NumberColor '#3498db' -IconSolid 'server' -IconColor '#3498db'
@@ -122,7 +122,7 @@
             }
 
             # Charts side by side
-            New-HTMLSection -Direction row {
+            New-HTMLSection -Density Comfortable {
                 New-HTMLPanel {
                     New-HTMLText -Text "📊 PME Status Distribution" -FontWeight bold
                     New-HTMLChart -Title 'Distribution' -Height 350 {
