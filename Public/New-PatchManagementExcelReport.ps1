@@ -99,7 +99,7 @@ function New-PatchManagementExcelReport {
         # Orange/Yellow background for 'Warning'
         Add-ConditionalFormatting -Worksheet $wsIssues -Range "D2:D$($issueRows.Count + 1)" -RuleType ContainsText -ConditionValue "Warning" -BackgroundColor DarkOrange -ForegroundColor White
         
-        Close-ExcelPackage $excel -Show
+        Close-ExcelPackage $excel
     }
 
     # ── Export Sheet 3: All Devices ─────────────────────────────────────────────
@@ -115,6 +115,6 @@ function New-PatchManagementExcelReport {
         Add-ConditionalFormatting -Worksheet $wsAll -Range "D2:D$($ReportData.Count + 1)" -RuleType ContainsText -ConditionValue "Warning" -BackgroundColor DarkOrange -ForegroundColor White
         Add-ConditionalFormatting -Worksheet $wsAll -Range "D2:D$($ReportData.Count + 1)" -RuleType ContainsText -ConditionValue "Normal" -BackgroundColor DarkGreen -ForegroundColor White
         
-        Close-ExcelPackage $excelAll -Show
+        Close-ExcelPackage $excelAll
     }
 }

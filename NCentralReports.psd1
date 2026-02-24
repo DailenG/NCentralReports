@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.6'
+    ModuleVersion     = '1.1.7'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.6: Fixed Export-Excel call missing NoNumberConversion argument.'
+            ReleaseNotes             = '1.1.7: Fixed -NoShow flag for Excel reports opening in background.'
 
             # Prerelease string of this module
             # Prerelease = ''
