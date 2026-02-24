@@ -51,9 +51,14 @@ function Get-NCentralConfig {
                     $returnObj | Add-Member -MemberType NoteProperty -Name SmtpFrom -Value $configObj.SmtpFrom
                     $returnObj | Add-Member -MemberType NoteProperty -Name SmtpUser -Value $configObj.SmtpUser
                     
-                    $bstrPw = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.SmtpPassword)
-                    $plainPw = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrPw)
-                    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPw)
+                    if ($null -ne $configObj.SmtpPassword) {
+                        $bstrPw = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.SmtpPassword)
+                        $plainPw = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrPw)
+                        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPw)
+                    }
+                    else {
+                        $plainPw = $null
+                    }
 
                     $returnObj | Add-Member -MemberType NoteProperty -Name SmtpPassword -Value $plainPw
                 }
@@ -109,9 +114,14 @@ function Get-NCentralConfig {
     }
     
     # Convert JWT
-    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.JWT)
-    $plainJwt = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
-    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    if ($null -ne $configObj.JWT) {
+        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.JWT)
+        $plainJwt = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    }
+    else {
+        $plainJwt = $null
+    }
 
     $returnObj = [PSCustomObject]@{
         ServerFQDN = $configObj.ServerFQDN
@@ -123,9 +133,14 @@ function Get-NCentralConfig {
         $returnObj | Add-Member -MemberType NoteProperty -Name SmtpFrom -Value $configObj.SmtpFrom
         $returnObj | Add-Member -MemberType NoteProperty -Name SmtpUser -Value $configObj.SmtpUser
         
-        $bstrPw = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.SmtpPassword)
-        $plainPw = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrPw)
-        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPw)
+        if ($null -ne $configObj.SmtpPassword) {
+            $bstrPw = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($configObj.SmtpPassword)
+            $plainPw = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrPw)
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPw)
+        }
+        else {
+            $plainPw = $null
+        }
 
         $returnObj | Add-Member -MemberType NoteProperty -Name SmtpPassword -Value $plainPw
     }
