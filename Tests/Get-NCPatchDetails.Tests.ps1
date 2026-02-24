@@ -1,4 +1,4 @@
-﻿#Requires -Module Pester
+#Requires -Module Pester
 <#
 .SYNOPSIS
     Pester unit tests for Get-NCPatchDetails.
@@ -6,7 +6,7 @@
 #>
 
 BeforeAll {
-    . (Join-Path $PSScriptRoot '..\Private\Get-NCPatchDetails.ps1')
+    . (Join-Path $PSScriptRoot '..\Public\Get-NCPatchDetails.ps1')
 }
 
 Describe 'Get-NCPatchDetails' {

@@ -7,7 +7,7 @@
 
 BeforeAll {
     . (Join-Path $PSScriptRoot '..\Private\ApiHelpers.ps1')
-    . (Join-Path $PSScriptRoot '..\Private\Get-NCDevices.ps1')
+    . (Join-Path $PSScriptRoot '..\Public\Get-NCDevices.ps1')
 }
 
 Describe 'Get-NCDevices' {

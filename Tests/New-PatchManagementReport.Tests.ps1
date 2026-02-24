@@ -1,4 +1,4 @@
-﻿#Requires -Module Pester
+#Requires -Module Pester
 <#
 .SYNOPSIS
     Pester unit tests for New-PatchManagementReport.
@@ -7,7 +7,7 @@
 #>
 
 BeforeAll {
-    . (Join-Path $PSScriptRoot '..\Reports\New-PatchManagementReport.ps1')
+    . (Join-Path $PSScriptRoot '..\Public\New-PatchManagementReport.ps1')
 
     # Sample data factory helpers
     function New-SampleRow {

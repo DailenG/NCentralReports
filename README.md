@@ -23,17 +23,20 @@ Install-Module PSWriteHTML -Scope CurrentUser
 ## Quick Start
 
 ```powershell
+# Import the module
+Import-Module .\NCentralReports.psd1 -Force
+
 # Set your JWT as an environment variable (avoid passing on command line)
 $env:NCentral_JWT = 'eyJ...'
 
 # Run against all devices, open HTML on completion
-.\Invoke-NCentralPatchReport.ps1
+Invoke-NCentralPatchReport
 
 # Filter to one customer, only show failed devices
-.\Invoke-NCentralPatchReport.ps1 -CustomerName "Acme Corp" -StatusFilter Failed
+Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed
 
 # Save report without opening browser
-.\Invoke-NCentralPatchReport.ps1 -NoShow -OutputPath "C:\Reports\patch-$(Get-Date -f 'yyyyMMdd').html"
+Invoke-NCentralPatchReport -NoShow -OutputPath "C:\Reports\patch-$(Get-Date -f 'yyyyMMdd').html"
 ```
 
 ---
@@ -67,6 +70,16 @@ $env:NCentral_JWT = 'eyJ...'
 
 ---
 
+## Publishing
+
+### Publishing to PSGallery
+The module includes a `publish.ps1` helper script modeled for standard PSGallery drops.
+```powershell
+.\publish.ps1 -ApiKey "oy2..."
+```
+
+---
+
 ## How It Works
 
 1. Authenticates using your JWT to obtain a short-lived Bearer access token.
@@ -95,15 +108,17 @@ confirm pagination is working. Check that your JWT has permissions to read devic
 
 ```
 NCentralReports/
-├── Invoke-NCentralPatchReport.ps1     Main entry point
+├── NCentralReports.psd1           Module manifest
+├── NCentralReports.psm1           Dynamic module loader
+├── publish.ps1                    PSGallery publishing script
 ├── Private/
-│   ├── Authentication.ps1             JWT → access token
-│   ├── ApiHelpers.ps1                 Pagination + retry/backoff
-│   ├── Get-NCOrganizations.ps1        Customer and site lists
-│   ├── Get-NCDevices.ps1              Device enumeration
-│   ├── Get-NCMonitoredServices.ps1    Per-device patch service states
-│   ├── Get-NCApplianceTask.ps1        Fetch appliance task details
-│   └── Get-NCPatchDetails.ps1         Extract PME status fields
-└── Reports/
-    └── New-PatchManagementReport.ps1  PSWriteHTML report builder
+│   ├── ApiHelpers.ps1             Pagination + retry/backoff
+│   └── Get-NCOrganizations.ps1    Customer and site lists
+└── Public/
+    ├── Invoke-NCentralPatchReport.ps1  Main entry point function
+    ├── Get-NCDevices.ps1               Device enumeration
+    ├── Get-NCServiceMonitorStatus.ps1  Per-device patch service states
+    ├── Get-NCApplianceTask.ps1         Fetch appliance task details
+    ├── Get-NCPatchDetails.ps1          Extract PME status fields
+    └── New-PatchManagementReport.ps1   PSWriteHTML report builder
 ```
