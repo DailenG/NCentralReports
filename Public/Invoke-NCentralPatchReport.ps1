@@ -98,6 +98,13 @@ function Invoke-NCentralPatchReport {
         # Email Options
         [switch]$SendEmail,
         [string[]]$SendTo,
+        [string]$SmtpServer,
+        [string]$SmtpFrom,
+        [string]$SmtpUsername,
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '')]
+        [string]$SmtpPassword,
+        [int]$Port,
+        [switch]$SkipCertificateValidation,
 
         # Tuning
         [switch]$IncludeHealthy
@@ -107,9 +114,13 @@ function Invoke-NCentralPatchReport {
 
     # ── Step 0: Validate prerequisites ────────────────────────────────────────────
 
+    $needSmtpConfig = $false
     if ($SendEmail) {
         if (-not $SendTo) {
             throw "To send an email, you must provide the -SendTo recipient list."
+        }
+        if ([string]::IsNullOrWhiteSpace($SmtpServer) -or [string]::IsNullOrWhiteSpace($SmtpFrom) -or [string]::IsNullOrWhiteSpace($SmtpUsername) -or [string]::IsNullOrWhiteSpace($SmtpPassword)) {
+            $needSmtpConfig = $true
         }
     }
 
@@ -117,9 +128,9 @@ function Invoke-NCentralPatchReport {
         $OutputPath = $OutputPath -replace '\.xlsx$', '.html'
     }
 
-    if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT) -or $SendEmail) {
+    if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT) -or $needSmtpConfig) {
         Write-Verbose "Loading configuration..."
-        $config = Get-NCentralConfig -RequireSMTP:$SendEmail.IsPresent
+        $config = Get-NCentralConfig -RequireSMTP:$needSmtpConfig
         
         if ([string]::IsNullOrWhiteSpace($ServerFQDN)) { $ServerFQDN = $config.ServerFQDN }
         if ([string]::IsNullOrWhiteSpace($JWT)) { $JWT = $config.JWT }
@@ -349,9 +360,22 @@ function Invoke-NCentralPatchReport {
 
     if ($SendEmail) {
         Write-Host "`nSending email..." -ForegroundColor Yellow
+        
+        $finalSmtpServer = if (-not [string]::IsNullOrWhiteSpace($SmtpServer)) { $SmtpServer } else { $config.SmtpServer }
+        $finalSmtpFrom = if (-not [string]::IsNullOrWhiteSpace($SmtpFrom)) { $SmtpFrom } else { $config.SmtpFrom }
+        $finalSmtpUser = if (-not [string]::IsNullOrWhiteSpace($SmtpUsername)) { $SmtpUsername } else { $config.SmtpUser }
+        
+        if (-not [string]::IsNullOrWhiteSpace($SmtpPassword)) {
+            $finalSmtpPassSecure = ConvertTo-SecureString $SmtpPassword -AsPlainText -Force
+        }
+        else {
+            $finalSmtpPassSecure = ConvertTo-SecureString $config.SmtpPassword -AsPlainText -Force
+        }
+
         Send-NCEReportEmail -FilePath $resolvedPath -To $SendTo `
-            -From $config.SmtpFrom -SmtpServer $config.SmtpServer `
-            -SmtpUsername $config.SmtpUser -SmtpPassword $config.SmtpPassword
+            -From $finalSmtpFrom -SmtpServer $finalSmtpServer `
+            -SmtpUsername $finalSmtpUser -SmtpPassword $finalSmtpPassSecure `
+            -Port $Port -SkipCertificateValidation:$SkipCertificateValidation.IsPresent
     }
 
     # ── Step 8: Open report ────────────────────────────────────────────────────────

@@ -47,8 +47,13 @@ Invoke-NCentralPatchReport
 # Legacy HTML format instead of Excel
 Invoke-NCentralPatchReport -ExportHTML
 
-# Run, generate Excel, don't open browser, and email to me
-Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoShow -SendEmail -SendTo "admin@widedata.com"
+# Run, generate Excel, don't open browser, and email to me (uses saved config)
+Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoShow -SendEmail -SendTo "admin@dailen.net"
+
+# Fully automated execution (bypasses config prompt by optionally supplying all details)
+Invoke-NCentralPatchReport -NoShow -SendEmail -SendTo "admin@dailen.net" `
+    -SmtpServer "smtp.example.com" -Port 587 -SkipCertificateValidation `
+    -SmtpFrom "reports@example.com" -SmtpUsername "user" -SmtpPassword "plaintext_pass!"
 ```
 
 ---
@@ -71,6 +76,12 @@ Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoSho
 | `IncludeHealthy` | switch | _(off)_ | Include healthy devices in the All Devices tab |
 | `SendEmail` | switch | _(off)_ | Triggers emailing the generated document via Mailozaurr |
 | `SendTo` | string[] | | Recipient email addresses. Required if `-SendEmail` used. |
+| `SmtpServer` | string | | Override for SMTP Server hostname or IP |
+| `SmtpFrom` | string | | Override for Sender email address |
+| `SmtpUsername` | string | | Override for SMTP Username |
+| `SmtpPassword` | string | | Override for SMTP Password (plaintext) |
+| `Port` | int | | Override for SMTP Port |
+| `SkipCertificateValidation` | switch | _(off)_ | Ignore SMTP server SSL/TLS certificate errors |
 
 ---
 

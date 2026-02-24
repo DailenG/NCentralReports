@@ -40,7 +40,13 @@ function Send-NCEReportEmail {
         [string]$SmtpUsername,
 
         [Parameter(Mandatory)]
-        [securestring]$SmtpPassword
+        [securestring]$SmtpPassword,
+
+        [Parameter()]
+        [int]$Port,
+
+        [Parameter()]
+        [switch]$SkipCertificateValidation
     )
 
     $ErrorActionPreference = 'Stop'
@@ -71,7 +77,25 @@ NCentralReports Service
     try {
         $credential = New-Object System.Management.Automation.PSCredential($SmtpUsername, $SmtpPassword)
 
-        Send-EmailMessage -To $To -From $From -Subject $subject -Body $body -Attachments $FilePath -SmtpServer $SmtpServer -Credential $credential
+        $emailParams = @{
+            To          = $To
+            From        = $From
+            Subject     = $subject
+            Body        = $body
+            Attachments = $FilePath
+            SmtpServer  = $SmtpServer
+            Credential  = $credential
+        }
+
+        if ($Port) {
+            $emailParams.Port = $Port
+        }
+        
+        if ($SkipCertificateValidation) {
+            $emailParams.SkipCertificateCheck = $true
+        }
+
+        Send-EmailMessage @emailParams
         Write-Host "  Report emailed successfully to $($To -join ', ')" -ForegroundColor Green
     }
     catch {
