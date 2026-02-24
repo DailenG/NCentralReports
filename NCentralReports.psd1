@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.1'
+    ModuleVersion     = '1.1.2'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.1: Hotfix to replace em-dash characters causing parsing errors in RMM platforms.`n1.1.0: Introduced robust Excel reporting as default. Added Mailozaurr email automation integration. Implemented secure persistent SMTP configuration.'
+            ReleaseNotes             = '1.1.2: Hotfix to replace PowerShell 7+ null-conditional and null-coalescing operators with 5.1 fallbacks to ensure RMM compatibility.`n1.1.1: Hotfix to replace em-dash characters causing parsing errors in RMM platforms.`n1.1.0: Introduced robust Excel reporting as default. Added Mailozaurr email automation integration. Implemented secure persistent SMTP configuration.'
 
             # Prerelease string of this module
             # Prerelease = ''

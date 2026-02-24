@@ -172,7 +172,8 @@ function Get-NCPagedResults {
         if ($hasData) {
             # Unwrap items using strictly defined schema .data
             $items = $response.PSObject.Properties['data'].Value
-            $totalItems = $response.PSObject.Properties['totalItems']?.Value
+            $totalProp = $response.PSObject.Properties['totalItems']
+            $totalItems = if ($null -ne $totalProp) { $totalProp.Value } else { $null }
         }
         elseif ($response -is [array]) {
             # Handle raw array gracefully

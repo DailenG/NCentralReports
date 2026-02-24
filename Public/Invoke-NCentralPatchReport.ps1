@@ -174,8 +174,8 @@ function Invoke-NCentralPatchReport {
             Write-Warning "No customers matched '$CustomerName'. Proceeding with all customers."
         }
         else {
-            $targetCustomerIds = @($matched | ForEach-Object { $_.customerId ?? $_.id })
-            Write-Host "  Matched $($matched.Count) customer(s): $(($matched | ForEach-Object { $_.customerName ?? $_.name }) -join ', ')"
+            $targetCustomerIds = @($matched | ForEach-Object { if ($null -ne $_.customerId) { $_.customerId } else { $_.id } })
+            Write-Host "  Matched $($matched.Count) customer(s): $(($matched | ForEach-Object { if ($null -ne $_.customerName) { $_.customerName } else { $_.name } }) -join ', ')"
         }
     }
     else {
@@ -192,7 +192,7 @@ function Invoke-NCentralPatchReport {
         $customerIdsForSites = if ($targetCustomerIds.Count -gt 0) { $targetCustomerIds } else {
             # Fetch all customers to get their IDs
             $allCustomers = Get-NCCustomers -BaseUri $baseUri -Headers $headers
-            @($allCustomers | ForEach-Object { $_.customerId ?? $_.id })
+            @($allCustomers | ForEach-Object { if ($null -ne $_.customerId) { $_.customerId } else { $_.id } })
         }
         foreach ($cId in $customerIdsForSites) {
             $sites = Get-NCSites -BaseUri $baseUri -Headers $headers -CustomerId $cId
@@ -200,7 +200,7 @@ function Invoke-NCentralPatchReport {
                     $_.siteName -like "*$SiteName*" -or
                     $_.name -like "*$SiteName*"
                 })
-            $targetSiteIds += @($matchedSites | ForEach-Object { $_.siteId ?? $_.id })
+            $targetSiteIds += @($matchedSites | ForEach-Object { if ($null -ne $_.siteId) { $_.siteId } else { $_.id } })
         }
         Write-Host "  Site filter '$SiteName' matched $($targetSiteIds.Count) site(s)."
     }
@@ -225,7 +225,7 @@ function Invoke-NCentralPatchReport {
     if ($targetSiteIds.Count -gt 0) {
         $before = $allDevices.Count
         $allDevices = @($allDevices | Where-Object {
-                ($_.siteId ?? $_.locationId ?? $_.site) -in $targetSiteIds
+                (if ($null -ne $_.siteId) { $_.siteId } elseif ($null -ne $_.locationId) { $_.locationId } else { $_.site }) -in $targetSiteIds
             })
         Write-Host "  Site filter reduced $before → $($allDevices.Count) devices."
     }
