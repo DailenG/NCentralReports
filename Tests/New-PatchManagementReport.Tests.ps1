@@ -12,14 +12,14 @@ BeforeAll {
     # Sample data factory helpers
     function New-SampleRow {
         param(
-            [string]$DeviceName       = 'PC-001',
-            [string]$CustomerName     = 'Acme Corp',
-            [string]$SiteName         = 'HQ',
-            [string]$ServiceState     = 'Failed',
-            [string]$PMEStatus        = 'PME service stopped',
+            [string]$DeviceName = 'PC-001',
+            [string]$CustomerName = 'Acme Corp',
+            [string]$SiteName = 'HQ',
+            [string]$ServiceState = 'Failed',
+            [string]$PMEStatus = 'PME service stopped',
             [string]$PMEThresholdStatus = 'Threshold exceeded',
-            [string]$PatchState       = 'Failed',
-            [datetime]$LastChecked    = (Get-Date)
+            [string]$PatchState = 'Failed',
+            [datetime]$LastChecked = (Get-Date)
         )
         [PSCustomObject]@{
             DeviceName         = $DeviceName
@@ -42,7 +42,7 @@ Describe 'New-PatchManagementReport' {
 
         It 'Creates an HTML file at the specified OutputPath' {
             $outPath = Join-Path $script:tempDir "pester-test-$(New-Guid).html"
-            $rows    = @(New-SampleRow)
+            $rows = @(New-SampleRow)
 
             New-PatchManagementReport -ReportData $rows -OutputPath $outPath
 
@@ -61,7 +61,7 @@ Describe 'New-PatchManagementReport' {
 
         It 'Generated file contains HTML content' {
             $outPath = Join-Path $script:tempDir "pester-content-$(New-Guid).html"
-            $rows    = @(New-SampleRow)
+            $rows = @(New-SampleRow)
 
             New-PatchManagementReport -ReportData $rows -OutputPath $outPath
 
@@ -80,7 +80,7 @@ Describe 'New-PatchManagementReport' {
                 New-SampleRow -DeviceName 'Healthy-1' -ServiceState 'Normal' -PMEStatus 'N/A' -PatchState 'Normal'
             )
 
-            # The function itself runs without error — KPI correctness verified
+            # The function itself runs without error - KPI correctness verified
             # by checking the generated file contains device names
             $outPath = Join-Path $script:tempDir "pester-kpi-$(New-Guid).html"
             { New-PatchManagementReport -ReportData $rows -OutputPath $outPath } | Should -Not -Throw
@@ -141,8 +141,8 @@ Describe 'New-PatchManagementReport' {
         It 'Handles 1000 rows without error' {
             $rows = 1..1000 | ForEach-Object {
                 New-SampleRow -DeviceName "PC-$_" `
-                              -ServiceState (@('Failed','Warning','Normal') | Get-Random) `
-                              -CustomerName "Customer-$($_ % 10)"
+                    -ServiceState (@('Failed', 'Warning', 'Normal') | Get-Random) `
+                    -CustomerName "Customer-$($_ % 10)"
             }
 
             $outPath = Join-Path $script:tempDir "pester-large-$(New-Guid).html"

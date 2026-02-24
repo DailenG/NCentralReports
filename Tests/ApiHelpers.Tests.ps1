@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Pester unit tests for Invoke-NCRestMethod and Get-NCPagedResults.
-    Uses Mock to intercept Invoke-RestMethod — no live API required.
+    Uses Mock to intercept Invoke-RestMethod - no live API required.
 #>
 
 BeforeAll {
@@ -62,7 +62,7 @@ Describe 'Invoke-NCRestMethod' {
                 )
             }
 
-            # Should throw (not retry) — we just verify it throws
+            # Should throw (not retry) - we just verify it throws
             { Invoke-NCRestMethod -BaseUri $base -Endpoint '/api/test' -Headers $headers } |
             Should -Throw
         }
@@ -93,7 +93,7 @@ Describe 'Invoke-NCRestMethod' {
                     $ex, 'NotFound',
                     [System.Management.Automation.ErrorCategory]::ObjectNotFound, $null
                 )
-                # Simulate the way PS reports 404 — statusCode on .Exception.Response
+                # Simulate the way PS reports 404 - statusCode on .Exception.Response
                 throw $err
             }
 
@@ -123,7 +123,7 @@ Describe 'Invoke-NCRestMethod' {
 
             # Because our mock throws a generic Exception (no .Response.StatusCode),
             # Invoke-NCRestMethod will treat it as a non-retryable error and throw.
-            # This test confirms the retry path exists — in production the real
+            # This test confirms the retry path exists - in production the real
             # HttpResponseException carries the status code.
             # We verify retry logic by checking Start-Sleep is called on 429-like paths.
             { Invoke-NCRestMethod -BaseUri $base -Endpoint '/api/test' -Headers $headers -MaxRetries 3 } |
@@ -208,7 +208,7 @@ Describe 'Get-NCPagedResults' {
                     return [PSCustomObject]@{ data = $arr.ToArray() }
                 }
                 else {
-                    # Partial page (fewer items than PageSize) — signals last page
+                    # Partial page (fewer items than PageSize) - signals last page
                     $arr2 = [System.Collections.Generic.List[object]]::new()
                     $arr2.Add([PSCustomObject]@{ id = 3 })
                     return [PSCustomObject]@{ data = $arr2.ToArray() }
@@ -259,7 +259,7 @@ Describe 'Get-NCPagedResults' {
             }
 
             $result = Get-NCPagedResults -BaseUri $base -Endpoint '/api/devices' -Headers $headers -PageSize 100
-            # Root-array fallback — partial page stops loop
+            # Root-array fallback - partial page stops loop
             $result.Count | Should -BeGreaterOrEqual 1
         }
     }

@@ -45,7 +45,7 @@ $files = Get-ChildItem -Path $scriptRoot -Recurse -Filter '*.ps1' |
 Where-Object { $_.FullName -notlike '*\.claude\*' -and $_.FullName -notlike '*\Tests\*' } |
 Sort-Object FullName
 
-Write-Host "N-Central Reports — Quality Check" -ForegroundColor Cyan
+Write-Host "N-Central Reports - Quality Check" -ForegroundColor Cyan
 Write-Host "Analysing $($files.Count) file(s) with PSScriptAnalyzer $((Get-Module PSScriptAnalyzer).Version)`n"
 
 # ── Run analysis ───────────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ foreach ($group in $byFile) {
             'Information' { 'Cyan' }
             default { 'Gray' }
         }
-        Write-Host ("    [{0}] Line {1}: {2} — {3}" -f `
+        Write-Host ("    [{0}] Line {1}: {2} - {3}" -f `
                 $finding.Severity, $finding.Line, $finding.RuleName, $finding.Message) `
             -ForegroundColor $colour
     }

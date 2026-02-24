@@ -64,7 +64,7 @@
     @{ Expression = 'LastChecked'; Descending = $true } |
     Select-Object -First 10 DeviceName, CustomerName, SiteName, ServiceState, PMEStatus, LastChecked
 
-    # Error catalog — unique PME errors ranked by count
+    # Error catalog - unique PME errors ranked by count
     $errorCatalog = $issueRows |
     Where-Object { $_.PMEStatus -ne 'N/A' -and -not [string]::IsNullOrWhiteSpace($_.PMEStatus) } |
     Group-Object PMEStatus |
@@ -192,7 +192,7 @@
                     }
                 }
                 else {
-                    New-HTMLText -Text 'No patch issues found — all devices are healthy.' `
+                    New-HTMLText -Text 'No patch issues found - all devices are healthy.' `
                         -FontWeight bold -FontSize 16
                 }
             }

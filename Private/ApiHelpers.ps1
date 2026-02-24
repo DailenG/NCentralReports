@@ -67,30 +67,30 @@ function Invoke-NCRestMethod {
                 $statusCode = [int]$_.Exception.Response.StatusCode
             }
 
-            # 401 — bad/expired token, no point retrying
+            # 401 - bad/expired token, no point retrying
             if ($statusCode -eq 401) {
                 throw "N-Central API returned 401 Unauthorized for $fullUri. " +
-                "Your access token may have expired — re-run the script to obtain a fresh one."
+                "Your access token may have expired - re-run the script to obtain a fresh one."
             }
 
-            # 404 — resource not found, return null so callers can handle gracefully
+            # 404 - resource not found, return null so callers can handle gracefully
             if ($statusCode -eq 404) {
-                Write-Verbose "  404 Not Found: $fullUri — returning null"
+                Write-Verbose "  404 Not Found: $fullUri - returning null"
                 return $null
             }
 
-            # 429 or 5xx — retry with backoff
+            # 429 or 5xx - retry with backoff
             if ($statusCode -eq 429 -or ($statusCode -ge 500 -and $statusCode -le 599)) {
                 if ($attempt -ge $MaxRetries) {
                     throw "N-Central API $statusCode on $fullUri after $MaxRetries attempts: $_"
                 }
-                Write-Verbose "  $statusCode received — waiting ${waitSecs}s before retry $attempt/$MaxRetries"
+                Write-Verbose "  $statusCode received - waiting ${waitSecs}s before retry $attempt/$MaxRetries"
                 Start-Sleep -Seconds $waitSecs
                 $waitSecs = $waitSecs * 2
                 continue
             }
 
-            # Any other error — throw immediately
+            # Any other error - throw immediately
             throw "N-Central API request failed ($statusCode) for $fullUri : $_"
         }
     }
@@ -151,7 +151,7 @@ function Get-NCPagedResults {
             -Headers $Headers -QueryParams $params
 
         if ($null -eq $response) {
-            Write-Verbose "  Paged call returned null at page $pageNumber — stopping."
+            Write-Verbose "  Paged call returned null at page $pageNumber - stopping."
             break
         }
 
@@ -193,18 +193,18 @@ function Get-NCPagedResults {
 
         $itemArray = @($items)
         if ($itemArray.Count -eq 0) {
-            Write-Verbose "  No items on page $pageNumber — stopping pagination."
+            Write-Verbose "  No items on page $pageNumber - stopping pagination."
             break
         }
 
         foreach ($item in $itemArray) { $allItems.Add($item) }
 
-        Write-Verbose "  Page $pageNumber — collected $($allItems.Count) of $totalItems total"
+        Write-Verbose "  Page $pageNumber - collected $($allItems.Count) of $totalItems total"
 
         if ($null -ne $totalItems -and $allItems.Count -ge $totalItems) { break }
         if ($itemArray.Count -lt $PageSize) { break }  # Last page was partial
         if ($pageNumber -ge $MaxPages) {
-            Write-Warning "Get-NCPagedResults: reached MaxPages ($MaxPages) for $Endpoint — stopping to prevent runaway loop."
+            Write-Warning "Get-NCPagedResults: reached MaxPages ($MaxPages) for $Endpoint - stopping to prevent runaway loop."
             break
         }
 

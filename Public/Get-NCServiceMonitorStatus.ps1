@@ -36,7 +36,7 @@ function Get-NCServiceMonitorStatus {
     $response = Invoke-NCRestMethod -BaseUri $BaseUri -Endpoint $endpoint -Headers $Headers
 
     if ($null -eq $response) {
-        Write-Verbose "  No response for device $DeviceId (404) — skipping"
+        Write-Verbose "  No response for device $DeviceId (404) - skipping"
         return @()
     }
 
@@ -78,7 +78,7 @@ function Get-NCServiceMonitorStatus {
         return @()
     }
 
-    Write-Verbose "  Device $DeviceId — $(@($degraded).Count) degraded patch service(s) found"
+    Write-Verbose "  Device $DeviceId - $(@($degraded).Count) degraded patch service(s) found"
 
     # Return strictly mapped standardized objects
     $mappedDegraded = [System.Collections.Generic.List[object]]::new()

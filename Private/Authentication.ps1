@@ -38,14 +38,14 @@ function Get-NCAccessToken {
         $statusCode = $_.Exception.Response.StatusCode.value__
         if ($statusCode -eq 401) {
             throw "Authentication failed (401). Your JWT may be expired or invalid. " +
-                  "Generate a new one from N-Central Administration > User Management > API Access."
+            "Generate a new one from N-Central Administration > User Management > API Access."
         }
         throw "Authentication request to $uri failed: $_"
     }
 
     Write-Verbose "Raw auth response: $($response | ConvertTo-Json -Depth 5 -Compress -WarningAction SilentlyContinue)"
 
-    # Field path inferred — confirm against live response via -Verbose output above.
+    # Field path inferred - confirm against live response via -Verbose output above.
     # Common alternatives: .tokens.access.token  /  .accessToken  /  .token
     $accessToken = $response.tokens.access.token
 

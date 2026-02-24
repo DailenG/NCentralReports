@@ -151,7 +151,7 @@ function Invoke-NCentralPatchReport {
     $headers = @{ Authorization = "Bearer $accessToken" }
     Write-Host "  Access token obtained." -ForegroundColor Green
 
-    # ── Step 2: Resolve scope — customers and sites ────────────────────────────────
+    # ── Step 2: Resolve scope - customers and sites ────────────────────────────────
 
     Write-Host "`nResolving scope..." -ForegroundColor Yellow
 
@@ -159,7 +159,7 @@ function Invoke-NCentralPatchReport {
     $targetCustomerIds = @()
 
     if ($CustomerId -gt 0) {
-        # Exact ID provided — use directly
+        # Exact ID provided - use directly
         $targetCustomerIds = @($CustomerId)
         Write-Host "  Using exact customer ID: $CustomerId"
     }
@@ -179,7 +179,7 @@ function Invoke-NCentralPatchReport {
         }
     }
     else {
-        Write-Host "  No customer filter — enumerating all devices."
+        Write-Host "  No customer filter - enumerating all devices."
     }
 
     # Determine target site IDs (used for filtering devices client-side when needed)
@@ -248,7 +248,7 @@ function Invoke-NCentralPatchReport {
     foreach ($device in $allDevices) {
         $deviceCount++
 
-        # Extract device properties — strictly typed from Get-NCDevices
+        # Extract device properties - strictly typed from Get-NCDevices
         $deviceId = $device.DeviceId
         $deviceName = $device.DeviceName
         $custName = $device.CustomerName
@@ -279,14 +279,14 @@ function Invoke-NCentralPatchReport {
             continue
         }
 
-        # Device has degraded patch services — fetch task details for each
+        # Device has degraded patch services - fetch task details for each
         foreach ($svc in $patchServices) {
             $issueCount++
 
             $serviceState = $svc.StateStatus
             $lastChecked = $null
 
-            # Extract task ID — strictly mapped from Get-NCServiceMonitorStatus
+            # Extract task ID - strictly mapped from Get-NCServiceMonitorStatus
             $taskId = [string]$svc.TaskId
 
             $pmeStatus = 'N/A'
@@ -306,7 +306,7 @@ function Invoke-NCentralPatchReport {
                 }
             }
             else {
-                Write-Verbose "  No taskId on service object for device $deviceName — cannot fetch PME details"
+                Write-Verbose "  No taskId on service object for device $deviceName - cannot fetch PME details"
             }
 
             $reportRows.Add([PSCustomObject]@{

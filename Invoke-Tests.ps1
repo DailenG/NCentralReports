@@ -9,7 +9,7 @@
     Pester output verbosity. One of: None, Normal, Detailed, Diagnostic.
     Defaults to Normal.
 .PARAMETER TestName
-    Optional filter — run only tests whose Describe/It name matches this string.
+    Optional filter - run only tests whose Describe/It name matches this string.
 .EXAMPLE
     .\Invoke-Tests.ps1
 .EXAMPLE
@@ -34,8 +34,8 @@ if (-not (Get-Module -ListAvailable -Name Pester | Where-Object Version -ge '5.0
 Import-Module Pester -MinimumVersion 5.0 -ErrorAction Stop
 
 $config = New-PesterConfiguration
-$config.Run.Path          = Join-Path $PSScriptRoot 'Tests'
-$config.Output.Verbosity  = $Verbosity
+$config.Run.Path = Join-Path $PSScriptRoot 'Tests'
+$config.Output.Verbosity = $Verbosity
 $config.TestResult.Enabled = $true
 $config.TestResult.OutputPath = Join-Path $PSScriptRoot 'Tests\TestResults.xml'
 

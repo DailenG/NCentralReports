@@ -3,7 +3,7 @@ function Get-NCCustomers {
     .SYNOPSIS
         Returns the list of N-Central customers (organisations).
     .DESCRIPTION
-        Calls GET /api/customers (endpoint inferred — confirm via -Verbose output).
+        Calls GET /api/customers (endpoint inferred - confirm via -Verbose output).
         Returns an array of customer objects.
     .PARAMETER BaseUri
         Base URL including protocol, e.g. 'https://n-central.example.com'
@@ -23,12 +23,12 @@ function Get-NCCustomers {
 
     Write-Verbose "Fetching customer list from $BaseUri/api/customers"
 
-    # Endpoint to confirm at runtime — alternatives: /api/org-units, /api/organizations
+    # Endpoint to confirm at runtime - alternatives: /api/org-units, /api/organizations
     $customers = Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/customers' -Headers $Headers
 
     if ($null -eq $customers -or @($customers).Count -eq 0) {
         Write-Warning "No customers returned from /api/customers. " +
-                      "Check endpoint path and token permissions."
+        "Check endpoint path and token permissions."
         return @()
     }
 
@@ -68,7 +68,7 @@ function Get-NCSites {
 
     # Endpoint to confirm at runtime
     $sites = Get-NCPagedResults -BaseUri $BaseUri -Endpoint "/api/customers/$CustomerId/sites" `
-                                -Headers $Headers
+        -Headers $Headers
 
     if ($null -eq $sites) { return @() }
 

@@ -7,7 +7,7 @@ function Get-NCApplianceTask {
         The task object contains a results array with detail entries including
         pme_status and pme_threshold_status.
 
-        Returns null if the task is not found (404) — callers should handle this case.
+        Returns null if the task is not found (404) - callers should handle this case.
     .PARAMETER BaseUri
         Base URL including protocol.
     .PARAMETER Headers
@@ -32,8 +32,8 @@ function Get-NCApplianceTask {
     Write-Verbose "Fetching appliance task $TaskId"
 
     $response = Invoke-NCRestMethod -BaseUri $BaseUri `
-                                    -Endpoint "/api/appliance-tasks/$TaskId" `
-                                    -Headers $Headers
+        -Endpoint "/api/appliance-tasks/$TaskId" `
+        -Headers $Headers
 
     if ($null -eq $response) {
         Write-Verbose "  Appliance task $TaskId not found (404)"

@@ -7,8 +7,8 @@ function Get-NCPatchDetails {
         matches 'pme_status' and 'pme_threshold_status'.
 
         Field paths are strictly mapped from API documentation:
-          $TaskObject.serviceDetails[n].detailName  — the field name key
-          $TaskObject.serviceDetails[n].detailValue — the field value
+          $TaskObject.serviceDetails[n].detailName  - the field name key
+          $TaskObject.serviceDetails[n].detailValue - the field value
 
         Returns a PSCustomObject with PMEStatus, PMEThresholdStatus, and the raw
         task object for future extensibility.
