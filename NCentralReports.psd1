@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.2.0'
+    ModuleVersion     = '1.2.1'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.10: Fixed boolean switch assignment when splatting SkipCertificateValidation to Mailozaurr.'
+            ReleaseNotes             = '1.2.1: Debugging and cleanup'
 
             # Prerelease string of this module
             # Prerelease = ''

@@ -99,7 +99,7 @@ NCentralReports Service
             $emailParams.Add('SkipCertificateValidation', $true)
         }
 
-        Send-EmailMessage @emailParams
+        Send-EmailMessage @emailParams -SkipCertificateValidation
         Write-Host "  Report emailed successfully to $($To -join ', ')" -ForegroundColor Green
     }
     catch {
