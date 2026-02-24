@@ -1,4 +1,4 @@
-function Get-NCCustomers {
+﻿function Get-NCCustomers {
     <#
     .SYNOPSIS
         Returns the list of N-Central customers (organisations).

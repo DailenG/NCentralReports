@@ -1,4 +1,4 @@
-function Get-NCApplianceTask {
+﻿function Get-NCApplianceTask {
     <#
     .SYNOPSIS
         Fetches the full appliance task object from N-Central.

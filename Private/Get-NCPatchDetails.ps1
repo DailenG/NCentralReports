@@ -1,16 +1,14 @@
-function Get-NCPatchDetails {
+﻿function Get-NCPatchDetails {
     <#
     .SYNOPSIS
         Extracts PME status fields from an N-Central appliance task object.
     .DESCRIPTION
-        Walks the task object's results array looking for entries whose detailname
+        Walks the task object's serviceDetails array looking for entries whose detailName
         matches 'pme_status' and 'pme_threshold_status'.
 
-        Field paths are inferred from API documentation:
-          $TaskObject.results[n].detailname  — the field name key
-          $TaskObject.results[n].value       — the field value
-
-        These paths are confirmed via -Verbose output on first run.
+        Field paths are strictly mapped from API documentation:
+          $TaskObject.serviceDetails[n].detailName  — the field name key
+          $TaskObject.serviceDetails[n].detailValue — the field value
 
         Returns a PSCustomObject with PMEStatus, PMEThresholdStatus, and the raw
         task object for future extensibility.
@@ -26,21 +24,14 @@ function Get-NCPatchDetails {
         [object]$TaskObject
     )
 
-    $PMEStatus          = $null
+    $PMEStatus = $null
     $PMEThresholdStatus = $null
 
-    # Locate the results array — may be at .results or .data.results
-    $results = $TaskObject.results
-    if ($null -eq $results) {
-        $results = $TaskObject.data.results
-    }
-    if ($null -eq $results) {
-        $results = $TaskObject.details
-    }
+    # Locate the strictly defined serviceDetails array
+    $results = $TaskObject.serviceDetails
 
     if ($null -eq $results -or @($results).Count -eq 0) {
-        Write-Verbose "  No results array found in task object. " +
-                      "Check field paths — raw task: $($TaskObject | ConvertTo-Json -Depth 2 -Compress)"
+        Write-Verbose "  No serviceDetails array found in task object. raw task: $($TaskObject | ConvertTo-Json -Depth 2 -Compress)"
         return [PSCustomObject]@{
             PMEStatus          = 'Unknown'
             PMEThresholdStatus = 'Unknown'
@@ -48,22 +39,15 @@ function Get-NCPatchDetails {
         }
     }
 
-    Write-Verbose "  Task results array has $(@($results).Count) entries"
+    Write-Verbose "  Task serviceDetails array has $(@($results).Count) entries"
     Write-Verbose "  First result entry: $($results[0] | ConvertTo-Json -Depth 2 -Compress)"
 
     foreach ($entry in $results) {
-        # 'detailname' is inferred — may be 'name', 'key', 'label', etc.
-        $key = $entry.detailname
-        if ($null -eq $key) { $key = $entry.name }
-        if ($null -eq $key) { $key = $entry.key  }
-
-        # 'value' is inferred — may be 'stringValue', 'data', etc.
-        $val = $entry.value
-        if ($null -eq $val) { $val = $entry.stringValue }
-        if ($null -eq $val) { $val = $entry.data        }
+        $key = $entry.detailName
+        $val = $entry.detailValue
 
         switch -Wildcard ($key) {
-            { $_ -ieq 'pme_status' }           { $PMEStatus          = $val }
+            { $_ -ieq 'pme_status' } { $PMEStatus = $val }
             { $_ -ieq 'pme_threshold_status' } { $PMEThresholdStatus = $val }
         }
     }
@@ -71,7 +55,7 @@ function Get-NCPatchDetails {
     Write-Verbose "  PMEStatus='$PMEStatus'  PMEThresholdStatus='$PMEThresholdStatus'"
 
     return [PSCustomObject]@{
-        PMEStatus          = if ($null -ne $PMEStatus)          { $PMEStatus }          else { 'N/A' }
+        PMEStatus          = if ($null -ne $PMEStatus) { $PMEStatus }          else { 'N/A' }
         PMEThresholdStatus = if ($null -ne $PMEThresholdStatus) { $PMEThresholdStatus } else { 'N/A' }
         RawDetails         = $TaskObject
     }

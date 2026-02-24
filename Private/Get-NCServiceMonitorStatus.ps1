@@ -1,16 +1,14 @@
-function Get-NCPatchServices {
+﻿function Get-NCServiceMonitorStatus {
     <#
     .SYNOPSIS
         Returns degraded Patch Status monitored-service entries for a device.
     .DESCRIPTION
-        Calls GET /api/devices/{deviceId}/monitored-services, filters for services whose
-        name matches 'Patch Status*' or 'Patch Management*', and excludes services in
+        Calls GET /api/devices/{deviceId}/service-monitor-status, filters for services whose
+        moduleName matches 'Patch Status*' or 'Patch Management*', and excludes services in
         'Normal' or 'Disconnected' states (healthy / no data).
 
-        Returns an array of service objects including the taskId needed for the second
-        API hop. The taskId field name is inferred — confirm via -Verbose output.
-
-        Returns empty array if the device has no matching degraded services.
+        Returns an array of standardized objects including mapping to the
+        DeviceServiceMonitoringStatus schema.
     .PARAMETER BaseUri
         Base URL including protocol.
     .PARAMETER Headers
@@ -18,7 +16,7 @@ function Get-NCPatchServices {
     .PARAMETER DeviceId
         Numeric device ID.
     .EXAMPLE
-        $patchServices = Get-NCPatchServices -BaseUri $base -Headers $hdrs -DeviceId 12345
+        $patchServices = Get-NCServiceMonitorStatus -BaseUri $base -Headers $hdrs -DeviceId 12345
     #>
     [CmdletBinding()]
     param(
@@ -34,7 +32,7 @@ function Get-NCPatchServices {
 
     Write-Verbose "Fetching monitored services for device $DeviceId"
 
-    $endpoint = "/api/devices/$DeviceId/monitored-services"
+    $endpoint = "/api/devices/$DeviceId/service-monitor-status"
     $response = Invoke-NCRestMethod -BaseUri $BaseUri -Endpoint $endpoint -Headers $Headers
 
     if ($null -eq $response) {
@@ -55,12 +53,10 @@ function Get-NCPatchServices {
     # Log raw shape of first service to allow field-name confirmation
     Write-Verbose "  First monitored-service object: $($services[0] | ConvertTo-Json -Depth 4 -Compress)"
 
-    # Filter for Patch-related services only
+    # Filter for Patch-related services only (strictly mapped to moduleName)
     $patchServices = $services | Where-Object {
-        $_.serviceName -like '*Patch Status*'      -or
-        $_.serviceName -like '*Patch Management*'  -or
-        $_.name        -like '*Patch Status*'      -or
-        $_.name        -like '*Patch Management*'
+        $_.moduleName -like '*Patch Status*' -or
+        $_.moduleName -like '*Patch Management*'
     }
 
     if ($null -eq $patchServices -or @($patchServices).Count -eq 0) {
@@ -69,16 +65,11 @@ function Get-NCPatchServices {
     }
 
     # Exclude healthy / no-data states
-    $degradedStates = @('Failed', 'Warning', 'Stale', 'Misconfigured', 'No Data')
-    $healthyStates  = @('Normal', 'Disconnected')
+    $healthyStates = @('Normal', 'Disconnected')
 
     $degraded = @($patchServices) | Where-Object {
-        # Include if state is NOT in the healthy list
-        # (handles case where state field name varies)
-        $state = $_.state
-        if ($null -eq $state) { $state = $_.serviceState }
-        if ($null -eq $state) { $state = $_.status }
-
+        # Strict mapping to stateStatus schema field
+        $state = [string]$_.stateStatus
         $healthyStates -notcontains $state
     }
 
@@ -89,10 +80,18 @@ function Get-NCPatchServices {
 
     Write-Verbose "  Device $DeviceId — $(@($degraded).Count) degraded patch service(s) found"
 
-    # Add deviceId to each service object for later correlation
+    # Return strictly mapped standardized objects
+    $mappedDegraded = [System.Collections.Generic.List[object]]::new()
     foreach ($svc in $degraded) {
-        $svc | Add-Member -NotePropertyName '_deviceId' -NotePropertyValue $DeviceId -Force
+        $mapped = [PSCustomObject]@{
+            _deviceId   = [long]$DeviceId
+            TaskId      = [long]$svc.taskId
+            ServiceId   = [long]$svc.serviceId
+            ModuleName  = [string]$svc.moduleName
+            StateStatus = [string]$svc.stateStatus
+        }
+        $mappedDegraded.Add($mapped)
     }
 
-    return $degraded
+    return $mappedDegraded.ToArray()
 }
