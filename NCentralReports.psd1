@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.2'
+    ModuleVersion     = '1.1.3'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -90,8 +90,13 @@
     # ModuleList = @()
 
     # List of all files packaged with this module
-    # FileList = @()
-
+    FileList          = @(
+        'NCentralReports.psd1',
+        'NCentralReports.psm1',
+        'README.md',
+        'Public\*',
+        'Private\*'
+    )
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData       = @{
 
@@ -110,7 +115,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.2: Hotfix to replace PowerShell 7+ null-conditional and null-coalescing operators with 5.1 fallbacks to ensure RMM compatibility.`n1.1.1: Hotfix to replace em-dash characters causing parsing errors in RMM platforms.`n1.1.0: Introduced robust Excel reporting as default. Added Mailozaurr email automation integration. Implemented secure persistent SMTP configuration.'
+            ReleaseNotes             = '1.1.3: Fixed module manifest to exclude test files.'
 
             # Prerelease string of this module
             # Prerelease = ''
