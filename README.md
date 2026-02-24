@@ -1,6 +1,6 @@
 # N-Central Patch Management Report Tool
 
-Generates a self-contained HTML dashboard showing Windows patch health across all devices
+Generates a self-contained Excel spreadsheet (or HTML dashboard) showing Windows patch health across all devices
 monitored by N-Central (N-able), with drill-down into PME (Patch Management Engine) error
 messages.
 
@@ -10,9 +10,19 @@ messages.
 
 **PowerShell 5.1 or 7+**
 
-**PSWriteHTML module:**
+**ImportExcel module (Required):**
+```powershell
+Install-Module ImportExcel -Scope CurrentUser
+```
+
+**PSWriteHTML module (Optional for `-ExportHTML`):**
 ```powershell
 Install-Module PSWriteHTML -Scope CurrentUser
+```
+
+**Mailozaurr module (Optional for `-SendEmail`):**
+```powershell
+Install-Module Mailozaurr -Scope CurrentUser
 ```
 
 **N-Central JWT token** — generate from your N-Central portal under
@@ -30,14 +40,14 @@ Import-Module .\NCentralReports.psd1 -Force
 # The first time you run the report, it will securely prompt you for your
 # N-Central Server FQDN and JWT token and save them locally.
 
-# Run against all devices, open HTML on completion
+# Run against all devices, generate Excel, open on completion
 Invoke-NCentralPatchReport
 
-# Filter to one customer, only show failed devices
-Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed
+# Legacy HTML format instead of Excel
+Invoke-NCentralPatchReport -ExportHTML
 
-# Save report without opening browser
-Invoke-NCentralPatchReport -NoShow -OutputPath "C:\Reports\patch-$(Get-Date -f 'yyyyMMdd').html"
+# Run, generate Excel, don't open browser, and email to me
+Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoShow -SendEmail -SendTo "admin@widedata.com" -SmtpFrom "reports@widedata.com" -SmtpServer "smtp.widedata.com"
 ```
 
 ---
@@ -54,9 +64,14 @@ Invoke-NCentralPatchReport -NoShow -OutputPath "C:\Reports\patch-$(Get-Date -f '
 | `SiteId` | int | _(all)_ | Exact site ID |
 | `DeviceName` | string | _(all)_ | Partial match on device name |
 | `StatusFilter` | All/Failed/Warning | `All` | Filter report rows by patch state |
-| `OutputPath` | string | auto-named .html | Where to save the HTML report |
-| `NoShow` | switch | _(off)_ | Don't open browser after generating |
+| `OutputPath` | string | auto-named .xlsx | Where to save the exported report |
+| `NoShow` | switch | _(off)_ | Don't open the file/browser after generating |
+| `ExportHTML` | switch | _(off)_ | Generate the legacy HTML visualization via PSWriteHTML instead of an Excel sheet |
 | `IncludeHealthy` | switch | _(off)_ | Include healthy devices in the All Devices tab |
+| `SendEmail` | switch | _(off)_ | Triggers emailing the generated document via Mailozaurr |
+| `SendTo` | string[] | | Recipient email addresses. Required if `-SendEmail` used. |
+| `SmtpFrom` | string | | Sender email address. Required if `-SendEmail` used. |
+| `SmtpServer` | string | | SMTP server hostname or IP. Required if `-SendEmail` used. |
 
 ---
 

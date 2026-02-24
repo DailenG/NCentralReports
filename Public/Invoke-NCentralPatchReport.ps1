@@ -90,9 +90,16 @@ function Invoke-NCentralPatchReport {
         [ValidateSet('All', 'Failed', 'Warning')]
         [string]$StatusFilter = 'All',
 
-        # Output
-        [string]$OutputPath = ".\NCentral-PatchReport-$(Get-Date -Format 'yyyy-MM-dd-HHmm').html",
+        # Output Options
+        [string]$OutputPath = ".\NCentral-PatchReport-$(Get-Date -Format 'yyyy-MM-dd-HHmm').xlsx",
         [switch]$NoShow,
+        [switch]$ExportHTML,
+
+        # Email Options
+        [switch]$SendEmail,
+        [string[]]$SendTo,
+        [string]$SmtpFrom,
+        [string]$SmtpServer,
 
         # Tuning
         [switch]$IncludeHealthy
@@ -101,6 +108,16 @@ function Invoke-NCentralPatchReport {
     $ErrorActionPreference = 'Stop'
 
     # ── Step 0: Validate prerequisites ────────────────────────────────────────────
+
+    if ($SendEmail) {
+        if (-not $SendTo -or -not $SmtpFrom -or -not $SmtpServer) {
+            throw "To send an email, you must provide -SendTo, -SmtpFrom, and -SmtpServer."
+        }
+    }
+
+    if ($ExportHTML) {
+        $OutputPath = $OutputPath -replace '\.xlsx$', '.html'
+    }
 
     if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT)) {
         Write-Verbose "Missing explicit ServerFQDN or JWT parameters; loading configuration..."
@@ -309,18 +326,34 @@ function Invoke-NCentralPatchReport {
 
     # ── Step 6: Generate report ────────────────────────────────────────────────────
 
-    Write-Host "`nGenerating HTML report..." -ForegroundColor Yellow
+    Write-Host "`nGenerating report..." -ForegroundColor Yellow
 
-    New-PatchManagementReport -ReportData $filteredRows `
-        -OutputPath $OutputPath `
-        -TotalDevicesScanned $deviceCount
+    if ($ExportHTML) {
+        Write-Verbose "Using PSWriteHTML generation engine..."
+        New-PatchManagementReport -ReportData $filteredRows `
+            -OutputPath $OutputPath `
+            -TotalDevicesScanned $deviceCount
+    }
+    else {
+        Write-Verbose "Using ImportExcel generation engine..."
+        New-PatchManagementExcelReport -ReportData $filteredRows `
+            -OutputPath $OutputPath `
+            -TotalDevicesScanned $deviceCount
+    }
 
     $resolvedPath = Resolve-Path $OutputPath -ErrorAction SilentlyContinue
     if (-not $resolvedPath) { $resolvedPath = $OutputPath }
 
     Write-Host "  Report saved: $resolvedPath" -ForegroundColor Green
 
-    # ── Step 7: Open report ────────────────────────────────────────────────────────
+    # ── Step 7: Send Email (optional) ──────────────────────────────────────────────
+
+    if ($SendEmail) {
+        Write-Host "`nSending email..." -ForegroundColor Yellow
+        Send-NCEReportEmail -FilePath $resolvedPath -To $SendTo -From $SmtpFrom -SmtpServer $SmtpServer
+    }
+
+    # ── Step 8: Open report ────────────────────────────────────────────────────────
 
     if (-not $NoShow) {
         Write-Host "  Opening report in default browser..." -ForegroundColor Yellow
