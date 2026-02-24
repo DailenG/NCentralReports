@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Runs all Pester unit tests for NCentralReports.
 .DESCRIPTION

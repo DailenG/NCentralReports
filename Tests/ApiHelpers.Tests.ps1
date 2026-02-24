@@ -1,4 +1,4 @@
-#Requires -Module Pester
+﻿#Requires -Module Pester
 <#
 .SYNOPSIS
     Pester unit tests for Invoke-NCRestMethod and Get-NCPagedResults.
@@ -14,7 +14,7 @@ BeforeAll {
 Describe 'Invoke-NCRestMethod' {
 
     BeforeEach {
-        $base    = 'https://test.example.com'
+        $base = 'https://test.example.com'
         $headers = @{ Authorization = 'Bearer testtoken' }
     }
 
@@ -35,7 +35,7 @@ Describe 'Invoke-NCRestMethod' {
             }
 
             $result = Invoke-NCRestMethod -BaseUri $base -Endpoint '/api/devices' `
-                                          -Headers $headers -QueryParams @{ pageSize = 50; pageNumber = 1 }
+                -Headers $headers -QueryParams @{ pageSize = 50; pageNumber = 1 }
             $result.capturedUri | Should -Match 'pageSize=50'
             $result.capturedUri | Should -Match 'pageNumber=1'
         }
@@ -64,7 +64,7 @@ Describe 'Invoke-NCRestMethod' {
 
             # Should throw (not retry) — we just verify it throws
             { Invoke-NCRestMethod -BaseUri $base -Endpoint '/api/test' -Headers $headers } |
-                Should -Throw
+            Should -Throw
         }
 
         It 'Throws exactly once (no retries) on 401' {
@@ -88,7 +88,7 @@ Describe 'Invoke-NCRestMethod' {
 
         It 'Returns null on 404 without throwing' {
             Mock Invoke-RestMethod {
-                $ex  = [System.Net.WebException]::new('404 Not Found')
+                $ex = [System.Net.WebException]::new('404 Not Found')
                 $err = [System.Management.Automation.ErrorRecord]::new(
                     $ex, 'NotFound',
                     [System.Management.Automation.ErrorCategory]::ObjectNotFound, $null
@@ -127,7 +127,7 @@ Describe 'Invoke-NCRestMethod' {
             # HttpResponseException carries the status code.
             # We verify retry logic by checking Start-Sleep is called on 429-like paths.
             { Invoke-NCRestMethod -BaseUri $base -Endpoint '/api/test' -Headers $headers -MaxRetries 3 } |
-                Should -Throw
+            Should -Throw
         }
     }
 }
@@ -137,7 +137,7 @@ Describe 'Invoke-NCRestMethod' {
 Describe 'Get-NCPagedResults' {
 
     BeforeEach {
-        $base    = 'https://test.example.com'
+        $base = 'https://test.example.com'
         $headers = @{ Authorization = 'Bearer testtoken' }
     }
 
@@ -198,19 +198,20 @@ Describe 'Get-NCPagedResults' {
         }
 
         It 'Stops on partial page even without totalItems' {
-            $page = 0
+            $script:page = 0
             Mock Invoke-NCRestMethod {
                 $script:page++
                 if ($script:page -eq 1) {
-                    return [PSCustomObject]@{
-                        data = @( [PSCustomObject]@{ id = 1 }, [PSCustomObject]@{ id = 2 } )
-                    }
+                    $arr = [System.Collections.Generic.List[object]]::new()
+                    $arr.Add([PSCustomObject]@{ id = 1 })
+                    $arr.Add([PSCustomObject]@{ id = 2 })
+                    return [PSCustomObject]@{ data = $arr.ToArray() }
                 }
                 else {
                     # Partial page (fewer items than PageSize) — signals last page
-                    return [PSCustomObject]@{
-                        data = @( [PSCustomObject]@{ id = 3 } )
-                    }
+                    $arr2 = [System.Collections.Generic.List[object]]::new()
+                    $arr2.Add([PSCustomObject]@{ id = 3 })
+                    return [PSCustomObject]@{ data = $arr2.ToArray() }
                 }
             }
 
@@ -229,7 +230,7 @@ Describe 'Get-NCPagedResults' {
             }
 
             $result = Get-NCPagedResults -BaseUri $base -Endpoint '/api/devices' -Headers $headers `
-                                         -PageSize 10 -MaxPages 3
+                -PageSize 10 -MaxPages 3
 
             # Should have collected exactly 3 pages × 10 items = 30
             $result.Count | Should -Be 30
