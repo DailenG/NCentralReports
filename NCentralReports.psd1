@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.3'
+    ModuleVersion     = '1.1.4'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -90,23 +90,8 @@
     # ModuleList = @()
 
     # List of all files packaged with this module
-    FileList          = @(
-        'NCentralReports.psd1',
-        'NCentralReports.psm1',
-        'README.md',
-        'Public\Get-NCApplianceTask.ps1',
-        'Public\Get-NCDevices.ps1',
-        'Public\Get-NCPatchDetails.ps1',
-        'Public\Get-NCServiceMonitorStatus.ps1',
-        'Public\Invoke-NCentralPatchReport.ps1',
-        'Public\New-PatchManagementExcelReport.ps1',
-        'Public\New-PatchManagementReport.ps1',
-        'Private\ApiHelpers.ps1',
-        'Private\Authentication.ps1',
-        'Private\Get-NCentralConfig.ps1',
-        'Private\Get-NCOrganizations.ps1',
-        'Private\Send-NCEReportEmail.ps1'
-    )
+    # FileList = @()
+    
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData       = @{
 
