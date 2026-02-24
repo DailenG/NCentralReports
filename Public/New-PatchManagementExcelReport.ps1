@@ -77,7 +77,7 @@ function New-PatchManagementExcelReport {
     if ($ReportData.Count -gt 0) {
         $ReportData | Export-Excel -Path $resolvedPath -WorksheetName "Customer Issues Pivot" `
             -PivotRows CustomerName -PivotData @{DeviceName = 'count' } `
-            -IncludePivotTable -NoNumberConversion -AutoSize
+            -IncludePivotTable -AutoSize
     }
 
     # ── Export Sheet 2: PME Issues ──────────────────────────────────────────────
