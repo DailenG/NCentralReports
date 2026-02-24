@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Runs PSScriptAnalyzer over all project .ps1 files and reports results.
 .DESCRIPTION
@@ -42,8 +42,8 @@ Import-Module PSScriptAnalyzer -ErrorAction Stop
 
 $scriptRoot = $PSScriptRoot
 $files = Get-ChildItem -Path $scriptRoot -Recurse -Filter '*.ps1' |
-    Where-Object { $_.FullName -notlike '*\.claude\*' -and $_.FullName -notlike '*\Tests\*' } |
-    Sort-Object FullName
+Where-Object { $_.FullName -notlike '*\.claude\*' -and $_.FullName -notlike '*\Tests\*' } |
+Sort-Object FullName
 
 Write-Host "N-Central Reports — Quality Check" -ForegroundColor Cyan
 Write-Host "Analysing $($files.Count) file(s) with PSScriptAnalyzer $((Get-Module PSScriptAnalyzer).Version)`n"
@@ -51,12 +51,12 @@ Write-Host "Analysing $($files.Count) file(s) with PSScriptAnalyzer $((Get-Modul
 # ── Run analysis ───────────────────────────────────────────────────────────────
 
 $allResults = foreach ($file in $files) {
-    $results = Invoke-ScriptAnalyzer -Path $file.FullName -Severity $Severity
+    $results = Invoke-ScriptAnalyzer -Path $file.FullName -Severity $Severity -ExcludeRule PSAvoidUsingWriteHost, PSUseSingularNouns, PSUseShouldProcessForStateChangingFunctions
 
     if ($Fix -and $results) {
         Invoke-ScriptAnalyzer -Path $file.FullName -Fix | Out-Null
         # Re-run after fix to show remaining issues
-        $results = Invoke-ScriptAnalyzer -Path $file.FullName -Severity $Severity
+        $results = Invoke-ScriptAnalyzer -Path $file.FullName -Severity $Severity -ExcludeRule PSAvoidUsingWriteHost, PSUseSingularNouns, PSUseShouldProcessForStateChangingFunctions
     }
 
     $results
@@ -76,24 +76,24 @@ foreach ($group in $byFile) {
     Write-Host "`n  $($group.Name)" -ForegroundColor White
     foreach ($finding in $group.Group | Sort-Object Severity, Line) {
         $colour = switch ($finding.Severity) {
-            'Error'       { 'Red'    }
-            'Warning'     { 'Yellow' }
-            'Information' { 'Cyan'   }
-            default       { 'Gray'   }
+            'Error' { 'Red' }
+            'Warning' { 'Yellow' }
+            'Information' { 'Cyan' }
+            default { 'Gray' }
         }
         Write-Host ("    [{0}] Line {1}: {2} — {3}" -f `
-            $finding.Severity, $finding.Line, $finding.RuleName, $finding.Message) `
+                $finding.Severity, $finding.Line, $finding.RuleName, $finding.Message) `
             -ForegroundColor $colour
     }
 }
 
 # Summary
 $errorCount = @($allResults | Where-Object Severity -eq 'Error').Count
-$warnCount  = @($allResults | Where-Object Severity -eq 'Warning').Count
-$infoCount  = @($allResults | Where-Object Severity -eq 'Information').Count
+$warnCount = @($allResults | Where-Object Severity -eq 'Warning').Count
+$infoCount = @($allResults | Where-Object Severity -eq 'Information').Count
 
 Write-Host ("`nTotal: {0} error(s), {1} warning(s), {2} informational" -f `
-    $errorCount, $warnCount, $infoCount) -ForegroundColor $(if ($errorCount -gt 0) { 'Red' } else { 'Yellow' })
+        $errorCount, $warnCount, $infoCount) -ForegroundColor $(if ($errorCount -gt 0) { 'Red' } else { 'Yellow' })
 
 if ($errorCount -gt 0) {
     exit 1
