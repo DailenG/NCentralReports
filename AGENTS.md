@@ -40,24 +40,12 @@ GET /api/appliance-tasks/{taskId}
 
 ---
 
-## API Assumptions to Verify at Runtime
+## OpenAPI Contract
 
-These field names are inferred from N-Central documentation and may differ in production.
-Each Private/ function emits `Write-Verbose` showing the raw first-object response so you
-can confirm field paths live.
+This tool strictly maps properties and endpoints based on the `ncentral-openapi-spec.json` document. Wait for the user to provide this or ensure you are referencing schemas directly when making API adjustments.
 
-| Assumption | Field / Endpoint | Where to confirm |
-|---|---|---|
-| Auth response path | `.tokens.access.token` | `Authentication.ps1` first run |
-| Service taskId field | `.taskId` (may be `.serviceId` or inside details) | `Get-NCMonitoredServices.ps1` |
-| Task results array path | `$task.results[].detailname` | `Get-NCPatchDetails.ps1` |
-| Customer list endpoint | `GET /api/customers` | `Get-NCOrganizations.ps1` |
-| Site list endpoint | `GET /api/customers/{id}/sites` | `Get-NCOrganizations.ps1` |
-| Pagination envelope | `.data` items / `.totalItems` count | `ApiHelpers.ps1` first paged call |
-| Device endpoint | `GET /api/devices` with `?customerId=` param | `Get-NCDevices.ps1` |
-
-**When you discover the real field name:** update the relevant Private/ function AND add a
-note to the "Verified Fields" section at the bottom of this file.
+**DO NOT GUESS OR INFER PAYLOAD SCHEMAS.** Use exact types extracted from the OpenAPI spec.
+For example, pagination explicitly relies on the `.data` and `.totalItems` fields wrapped inside a `ListResponse` schema.
 
 ---
 
@@ -141,7 +129,4 @@ Commits should be **atomic** — one logical change per commit. Do not bundle un
 
 ---
 
-## Verified Fields (update as you confirm live API responses)
 
-_Empty until first live run. Add entries here in the format:_
-`- **fieldName**: confirmed path `$obj.path.to.field` — verified YYYY-MM-DD`

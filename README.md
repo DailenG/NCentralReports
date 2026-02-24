@@ -52,7 +52,6 @@ $env:NCentral_JWT = 'eyJ...'
 | `StatusFilter` | All/Failed/Warning | `All` | Filter report rows by patch state |
 | `OutputPath` | string | auto-named .html | Where to save the HTML report |
 | `NoShow` | switch | _(off)_ | Don't open browser after generating |
-| `PageSize` | int | `100` | API page size (tune for large environments) |
 | `IncludeHealthy` | switch | _(off)_ | Include healthy devices in the All Devices tab |
 
 ---
@@ -86,12 +85,9 @@ $env:NCentral_JWT = 'eyJ...'
 **Empty report / no devices found** — Run with `-Verbose` to see raw API responses and
 confirm pagination is working. Check that your JWT has permissions to read device data.
 
-**429 Rate Limited** — The tool automatically backs off and retries. For very large
-environments (10,000+ devices), consider using `-PageSize 50` to reduce API pressure.
+**429 Rate Limited** — The tool automatically backs off and retries up to 3 times before failing aggressively to protect your threshold limits.
 
-**Field name errors in verbose output** — The API field names used in `Private/` functions
-are inferred and may not match your N-Central version. See `AGENTS.md` for how to confirm
-and update them.
+**Strict OpenAPI Architecture** — This module strictly adheres to the official `ncentral-openapi-spec.json` definitions. All properties, mapping, and payload bindings are 100% typed. If you encounter missing fields, ensure your N-Central server is updated to the latest REST API schema.
 
 ---
 
