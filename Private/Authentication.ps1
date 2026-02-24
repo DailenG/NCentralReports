@@ -1,4 +1,4 @@
-function Get-NCAccessToken {
+﻿function Get-NCAccessToken {
     <#
     .SYNOPSIS
         Exchanges a long-lived N-Central JWT for a short-lived Bearer access token.

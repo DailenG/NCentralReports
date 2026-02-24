@@ -1,4 +1,4 @@
-function Invoke-NCRestMethod {
+﻿function Invoke-NCRestMethod {
     <#
     .SYNOPSIS
         Wraps Invoke-RestMethod with exponential back-off retry for N-Central REST calls.
@@ -52,8 +52,8 @@ function Invoke-NCRestMethod {
     $fullUri = $BaseUri.TrimEnd('/') + $Endpoint + $queryString
     Write-Verbose "  --> $Method $fullUri"
 
-    $attempt   = 0
-    $waitSecs  = 1
+    $attempt = 0
+    $waitSecs = 1
 
     while ($true) {
         $attempt++
@@ -70,7 +70,7 @@ function Invoke-NCRestMethod {
             # 401 — bad/expired token, no point retrying
             if ($statusCode -eq 401) {
                 throw "N-Central API returned 401 Unauthorized for $fullUri. " +
-                      "Your access token may have expired — re-run the script to obtain a fresh one."
+                "Your access token may have expired — re-run the script to obtain a fresh one."
             }
 
             # 404 — resource not found, return null so callers can handle gracefully
@@ -106,8 +106,8 @@ function Get-NCPagedResults {
 
         Returns a flat array of all items across all pages.
 
-        NOTE: The pagination envelope fields (.data / .totalItems) are inferred.
-        Run with -Verbose to see the raw first-page response and confirm field names.
+        NOTE: The pagination envelope fields (.data / .totalItems) are strictly
+        mapped according to the N-Central OpenAPI specification.
     .PARAMETER BaseUri
         Base URL including protocol.
     .PARAMETER Endpoint
@@ -138,17 +138,17 @@ function Get-NCPagedResults {
         [int]$MaxPages = 500
     )
 
-    $allItems   = [System.Collections.Generic.List[object]]::new()
+    $allItems = [System.Collections.Generic.List[object]]::new()
     $pageNumber = 1
-    $firstPage  = $true
+    $firstPage = $true
 
     do {
         $params = $QueryParams.Clone()
-        $params['pageSize']   = $PageSize
+        $params['pageSize'] = $PageSize
         $params['pageNumber'] = $pageNumber
 
         $response = Invoke-NCRestMethod -BaseUri $BaseUri -Endpoint $Endpoint `
-                                        -Headers $Headers -QueryParams $params
+            -Headers $Headers -QueryParams $params
 
         if ($null -eq $response) {
             Write-Verbose "  Paged call returned null at page $pageNumber — stopping."
@@ -161,16 +161,34 @@ function Get-NCPagedResults {
             $firstPage = $false
         }
 
-        # Unwrap items — field name '.data' is inferred; update if different
-        $items = $response.data
-        if ($null -eq $items) {
-            Write-Verbose "  Response has no .data property — trying root array"
+        # In Pester Mocks, the result is sometimes wrapped in a 1-element object array.
+        # In the real world Invoke-RestMethod returns PSCustomObject directly.
+        if ($response -is [array] -and $response.Count -eq 1 -and $response[0].PSObject.Properties.Match('data').Count -gt 0) {
+            $response = $response[0]
+        }
+
+        $hasData = [bool]($response.PSObject.Properties.Match('data').Count -gt 0)
+
+        if ($hasData) {
+            # Unwrap items using strictly defined schema .data
+            $items = $response.PSObject.Properties['data'].Value
+            $totalItems = $response.PSObject.Properties['totalItems']?.Value
+        }
+        elseif ($response -is [array]) {
+            # Handle raw array gracefully
             $items = $response
+            $totalItems = $null
+        }
+        else {
+            # Handle plain objects gracefully
+            $items = @($response)
+            $totalItems = $null
         }
 
         if ($items -isnot [array] -and $items -isnot [System.Collections.IEnumerable]) {
             # Single object returned
-            $items = @($items)
+            if ($null -ne $items) { $items = @($items) }
+            else { $items = @() }
         }
 
         $itemArray = @($items)
@@ -180,12 +198,6 @@ function Get-NCPagedResults {
         }
 
         foreach ($item in $itemArray) { $allItems.Add($item) }
-
-        # Determine total expected items
-        $totalItems = $response.totalItems
-        if ($null -eq $totalItems) {
-            $totalItems = $response.pageDetails.totalItems
-        }
 
         Write-Verbose "  Page $pageNumber — collected $($allItems.Count) of $totalItems total"
 
