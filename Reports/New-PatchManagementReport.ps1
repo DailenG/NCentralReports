@@ -1,4 +1,4 @@
-function New-PatchManagementReport {
+﻿function New-PatchManagementReport {
     <#
     .SYNOPSIS
         Generates a self-contained HTML patch management dashboard using PSWriteHTML.
@@ -33,9 +33,9 @@ function New-PatchManagementReport {
         [Parameter(Mandatory)]
         [string]$OutputPath,
 
-        [string]$ReportTitle  = 'N-Central Patch Management Report',
+        [string]$ReportTitle = 'N-Central Patch Management Report',
 
-        [string]$GeneratedBy  = ''
+        [string]$GeneratedBy = ''
     )
 
     # Verify PSWriteHTML is available
@@ -46,47 +46,47 @@ function New-PatchManagementReport {
 
     # ── Derive report datasets ──────────────────────────────────────────────────
 
-    $issueRows  = @($ReportData | Where-Object { $_.ServiceState -ne 'Normal' })
-    $allRows    = @($ReportData)
+    $issueRows = @($ReportData | Where-Object { $_.ServiceState -ne 'Normal' })
+    $allRows = @($ReportData)
 
     # KPI counts
-    $total      = $allRows.Count
+    $total = $allRows.Count
     $issueCount = $issueRows.Count
-    $okCount    = $total - $issueCount
-    $pct        = if ($total -gt 0) { [Math]::Round(($okCount / $total) * 100, 1) } else { 0 }
-    $failCount  = @($issueRows | Where-Object { $_.ServiceState -eq 'Failed'  }).Count
-    $warnCount  = @($issueRows | Where-Object { $_.ServiceState -eq 'Warning' }).Count
-    $critical   = $failCount
+    $okCount = $total - $issueCount
+    $pct = if ($total -gt 0) { [Math]::Round(($okCount / $total) * 100, 1) } else { 0 }
+    $failCount = @($issueRows | Where-Object { $_.ServiceState -eq 'Failed' }).Count
+    $warnCount = @($issueRows | Where-Object { $_.ServiceState -eq 'Warning' }).Count
+    $critical = $failCount
 
     # Top 10 issues (most recent by LastChecked, then by state severity)
     $top10 = $issueRows |
-        Sort-Object @{ Expression = { switch ($_.ServiceState) { 'Failed' { 0 } 'Warning' { 1 } default { 2 } } } },
-                    @{ Expression = 'LastChecked'; Descending = $true } |
-        Select-Object -First 10 DeviceName, CustomerName, SiteName, ServiceState, PMEStatus, LastChecked
+    Sort-Object @{ Expression = { switch ($_.ServiceState) { 'Failed' { 0 } 'Warning' { 1 } default { 2 } } } },
+    @{ Expression = 'LastChecked'; Descending = $true } |
+    Select-Object -First 10 DeviceName, CustomerName, SiteName, ServiceState, PMEStatus, LastChecked
 
     # Error catalog — unique PME errors ranked by count
     $errorCatalog = $issueRows |
-        Where-Object { $_.PMEStatus -ne 'N/A' -and -not [string]::IsNullOrWhiteSpace($_.PMEStatus) } |
-        Group-Object PMEStatus |
-        Sort-Object Count -Descending |
-        ForEach-Object {
-            [PSCustomObject]@{
-                PMEStatus       = $_.Name
-                Count           = $_.Count
-                AffectedDevices = ($_.Group | Select-Object -ExpandProperty DeviceName | Sort-Object | Select-Object -Unique) -join ', '
-            }
+    Where-Object { $_.PMEStatus -ne 'N/A' -and -not [string]::IsNullOrWhiteSpace($_.PMEStatus) } |
+    Group-Object PMEStatus |
+    Sort-Object Count -Descending |
+    ForEach-Object {
+        [PSCustomObject]@{
+            PMEStatus       = $_.Name
+            Count           = $_.Count
+            AffectedDevices = ($_.Group | Select-Object -ExpandProperty DeviceName | Sort-Object | Select-Object -Unique) -join ', '
         }
+    }
 
     # Issues by customer for bar chart
     $byCustomer = $issueRows |
-        Group-Object CustomerName |
-        Sort-Object Count -Descending |
-        Select-Object -First 15  # cap at 15 for readability
+    Group-Object CustomerName |
+    Sort-Object Count -Descending |
+    Select-Object -First 15  # cap at 15 for readability
 
     # ── Build the HTML report ──────────────────────────────────────────────────
 
     $generatedAt = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    $subtitle    = if ($GeneratedBy) { " — $GeneratedBy" } else { '' }
+    $subtitle = if ($GeneratedBy) { " — $GeneratedBy" } else { '' }
 
     New-HTML -TitleText $ReportTitle -FilePath $OutputPath -ShowHTML:$false {
 
@@ -102,19 +102,19 @@ function New-PatchManagementReport {
             New-HTMLSection -Direction row -Invisible {
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices Scanned' -Number $total `
-                                    -TitleColor '#2c3e50' -NumberColor '#2980b9' -Icon 'fas fa-server'
+                        -TitleColor '#2c3e50' -NumberColor '#2980b9' -Icon 'fas fa-server'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices with Issues' -Number $issueCount `
-                                    -TitleColor '#2c3e50' -NumberColor '#e74c3c' -Icon 'fas fa-exclamation-triangle'
+                        -TitleColor '#2c3e50' -NumberColor '#e74c3c' -Icon 'fas fa-exclamation-triangle'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Healthy %' -Number "$pct%" `
-                                    -TitleColor '#2c3e50' -NumberColor '#27ae60' -Icon 'fas fa-check-circle'
+                        -TitleColor '#2c3e50' -NumberColor '#27ae60' -Icon 'fas fa-check-circle'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Critical Failures' -Number $critical `
-                                    -TitleColor '#2c3e50' -NumberColor '#c0392b' -Icon 'fas fa-times-circle'
+                        -TitleColor '#2c3e50' -NumberColor '#c0392b' -Icon 'fas fa-times-circle'
                 }
             }
 
@@ -141,7 +141,7 @@ function New-PatchManagementReport {
                     if ($byCustomer -and @($byCustomer).Count -gt 0) {
                         New-HTMLChart -Title 'Issues by Customer' -Height 300 {
                             New-ChartToolbar -Download
-                            New-ChartCategory -Name ($byCustomer | Select-Object -ExpandProperty Name)
+                            New-ChartAxisX -Name ($byCustomer | Select-Object -ExpandProperty Name)
                             New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#e67e22'
                         }
                     }
@@ -172,22 +172,22 @@ function New-PatchManagementReport {
             New-HTMLSection -HeaderText "Affected Devices ($issueCount)" {
                 if ($issueRows -and @($issueRows).Count -gt 0) {
                     New-HTMLTable -DataTable $issueRows `
-                                  -Filtering `
-                                  -Buttons @('excelHtml5', 'csvHtml5', 'pdfHtml5', 'copyHtml5') `
-                                  -DefaultSortColumn 'ServiceState' {
+                        -Filtering `
+                        -Buttons @('excelHtml5', 'csvHtml5', 'pdfHtml5', 'copyHtml5') `
+                        -DefaultSortColumn 'ServiceState' {
                         New-TableCondition -Name 'ServiceState' -Value 'Failed'  -Operator eq `
                             -ComparisonType string -BackgroundColor '#fadbd8' -Color '#922b21' -Row
                         New-TableCondition -Name 'ServiceState' -Value 'Warning' -Operator eq `
                             -ComparisonType string -BackgroundColor '#fdebd0' -Color '#784212' -Row
                         New-TableHeader -Names 'DeviceName', 'CustomerName', 'SiteName', `
-                                                'ServiceState', 'PMEThresholdStatus', `
-                                                'PMEStatus', 'LastChecked' `
-                                        -Title 'Patch Management Issues'
+                            'ServiceState', 'PMEThresholdStatus', `
+                            'PMEStatus', 'LastChecked' `
+                            -Title 'Patch Management Issues'
                     }
                 }
                 else {
                     New-HTMLText -Text 'No patch issues found — all devices are healthy.' `
-                                 -Color '#27ae60' -FontWeight bold -FontSize 16
+                        -Color '#27ae60' -FontWeight bold -FontSize 16
                 }
             }
         }
@@ -197,14 +197,14 @@ function New-PatchManagementReport {
             New-HTMLSection -HeaderText 'Unique PME Error Messages' {
                 if ($errorCatalog -and @($errorCatalog).Count -gt 0) {
                     New-HTMLTable -DataTable $errorCatalog `
-                                  -Filtering `
-                                  -DefaultSortColumn 'Count' `
-                                  -DefaultSortOrder Descending `
-                                  -Buttons @('excelHtml5', 'csvHtml5') {
+                        -Filtering `
+                        -DefaultSortColumn 'Count' `
+                        -DefaultSortOrder Descending `
+                        -Buttons @('excelHtml5', 'csvHtml5') {
                         New-TableCondition -Name 'Count' -ComparisonType number -Operator gt `
                             -Value 5 -BackgroundColor '#f5b7b1' -Row
                         New-TableHeader -Names 'PMEStatus', 'Count', 'AffectedDevices' `
-                                        -Title 'Error Frequency'
+                            -Title 'Error Frequency'
                     }
                 }
                 else {
@@ -218,7 +218,7 @@ function New-PatchManagementReport {
             New-HTMLSection -HeaderText "Complete Device Status ($total devices)" -CanCollapse {
                 if ($allRows -and @($allRows).Count -gt 0) {
                     $allDeviceRows = $allRows | Select-Object DeviceName, CustomerName, SiteName,
-                                                               PatchState, PMEStatus
+                    PatchState, PMEStatus
 
                     New-HTMLTable -DataTable $allDeviceRows -Filtering {
                         New-TableCondition -Name 'PatchState' -Value 'Normal' -Operator eq `
@@ -231,7 +231,7 @@ function New-PatchManagementReport {
                 }
                 else {
                     New-HTMLText -Text 'No device data available. Run with -IncludeHealthy to populate this tab.' `
-                                 -Color '#7f8c8d'
+                        -Color '#7f8c8d'
                 }
             }
         }
