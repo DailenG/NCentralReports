@@ -96,7 +96,7 @@ NCentralReports Service
         }
         
         if ($SkipCertificateValidation) {
-            $emailParams.SkipCertificateValidation = $true
+            $emailParams.Add('SkipCertificateValidation', $true)
         }
 
         Send-EmailMessage @emailParams
