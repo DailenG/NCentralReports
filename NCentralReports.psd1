@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.2.1: Debugging and cleanup'
+            ReleaseNotes             = '1.2.2: Debugging and cleanup'
 
             # Prerelease string of this module
             # Prerelease = ''

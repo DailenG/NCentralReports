@@ -95,9 +95,10 @@ NCentralReports Service
             $emailParams.Port = $Port
         }
         
-        if ($SkipCertificateValidation) {
-            $emailParams.Add('SkipCertificateValidation', $true)
-        }
+        <# Commenting this out bc it's not working with param splatting #>
+        # if ($SkipCertificateValidation) {
+        #     $emailParams.Add('SkipCertificateValidation', $true)
+        # }
 
         Send-EmailMessage @emailParams -SkipCertificateValidation
         Write-Host "  Report emailed successfully to $($To -join ', ')" -ForegroundColor Green
