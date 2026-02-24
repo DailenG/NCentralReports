@@ -94,8 +94,18 @@
         'NCentralReports.psd1',
         'NCentralReports.psm1',
         'README.md',
-        'Public\*',
-        'Private\*'
+        'Public\Get-NCApplianceTask.ps1',
+        'Public\Get-NCDevices.ps1',
+        'Public\Get-NCPatchDetails.ps1',
+        'Public\Get-NCServiceMonitorStatus.ps1',
+        'Public\Invoke-NCentralPatchReport.ps1',
+        'Public\New-PatchManagementExcelReport.ps1',
+        'Public\New-PatchManagementReport.ps1',
+        'Private\ApiHelpers.ps1',
+        'Private\Authentication.ps1',
+        'Private\Get-NCentralConfig.ps1',
+        'Private\Get-NCOrganizations.ps1',
+        'Private\Send-NCEReportEmail.ps1'
     )
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData       = @{
