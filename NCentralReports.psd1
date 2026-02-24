@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.1.9'
+    ModuleVersion     = '1.1.10'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.1.9: Fixed invalid parameter name SkipCertificateCheck causing email dispatch failures. Now uses SkipCertificateValidation.'
+            ReleaseNotes             = '1.1.10: Fixed boolean switch assignment when splatting SkipCertificateValidation to Mailozaurr.'
 
             # Prerelease string of this module
             # Prerelease = ''
