@@ -11,16 +11,13 @@
     Requires the PSWriteHTML module:
         Install-Module PSWriteHTML -Scope CurrentUser
 
-    Set your JWT via the environment variable to avoid passing it on the command line:
-        $env:NCentral_JWT = 'eyJ...'
+    The first time you run this, it will prompt for your ServerFQDN and JWT, securing the credentials locally for future runs.
 
 .PARAMETER ServerFQDN
     Hostname of the N-Central server (no protocol prefix).
-    Defaults to 'n-central.example.com'.
 
 .PARAMETER JWT
     Long-lived JWT token from N-Central Admin > User Management > API Access.
-    Defaults to $env:NCentral_JWT.
 
 .PARAMETER CustomerName
     Partial match on customer name (case-insensitive). Leave blank for all customers.
@@ -78,9 +75,9 @@
 function Invoke-NCentralPatchReport {
     [CmdletBinding()]
     param(
-        [string]$ServerFQDN = 'n-central.example.com',
+        [string]$ServerFQDN = '',
 
-        [string]$JWT = $env:NCentral_JWT,
+        [string]$JWT = '',
 
         # Scope filters
         [string]$CustomerName = '',
@@ -105,9 +102,11 @@ function Invoke-NCentralPatchReport {
 
     # ── Step 0: Validate prerequisites ────────────────────────────────────────────
 
-    if ([string]::IsNullOrWhiteSpace($JWT)) {
-        throw "No JWT provided. Set `$env:NCentral_JWT or pass -JWT. " +
-        "Generate a JWT from N-Central Administration > User Management > API Access."
+    if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT)) {
+        Write-Verbose "Missing explicit ServerFQDN or JWT parameters; loading configuration..."
+        $config = Get-NCentralConfig
+        $ServerFQDN = $config.ServerFQDN
+        $JWT = $config.JWT
     }
 
 

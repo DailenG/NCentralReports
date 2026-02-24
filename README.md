@@ -26,8 +26,9 @@ Install-Module PSWriteHTML -Scope CurrentUser
 # Import the module
 Import-Module .\NCentralReports.psd1 -Force
 
-# Set your JWT as an environment variable (avoid passing on command line)
-$env:NCentral_JWT = 'eyJ...'
+# No need to set environment variables or pass credentials!
+# The first time you run the report, it will securely prompt you for your
+# N-Central Server FQDN and JWT token and save them locally.
 
 # Run against all devices, open HTML on completion
 Invoke-NCentralPatchReport
@@ -45,8 +46,8 @@ Invoke-NCentralPatchReport -NoShow -OutputPath "C:\Reports\patch-$(Get-Date -f '
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `ServerFQDN` | string | `n-central.example.com` | N-Central server hostname |
-| `JWT` | string | `$env:NCentral_JWT` | JWT token for authentication |
+| `ServerFQDN` | string | _(prompt)_ | N-Central server hostname (skip to trigger prompt) |
+| `JWT` | string | _(prompt)_ | JWT token for authentication (skip to trigger prompt) |
 | `CustomerName` | string | _(all)_ | Partial match on customer name |
 | `CustomerId` | int | _(all)_ | Exact customer ID |
 | `SiteName` | string | _(all)_ | Partial match on site name |
