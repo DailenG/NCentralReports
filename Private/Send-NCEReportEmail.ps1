@@ -34,7 +34,13 @@ function Send-NCEReportEmail {
         [string]$From,
 
         [Parameter(Mandatory)]
-        [string]$SmtpServer
+        [string]$SmtpServer,
+
+        [Parameter(Mandatory)]
+        [string]$SmtpUsername,
+
+        [Parameter(Mandatory)]
+        [securestring]$SmtpPassword
     )
 
     $ErrorActionPreference = 'Stop'
@@ -63,7 +69,9 @@ NCentralReports Service
 "@
 
     try {
-        Send-EmailMessage -To $To -From $From -Subject $subject -Body $body -Attachments $FilePath -SmtpServer $SmtpServer
+        $credential = New-Object System.Management.Automation.PSCredential($SmtpUsername, $SmtpPassword)
+
+        Send-EmailMessage -To $To -From $From -Subject $subject -Body $body -Attachments $FilePath -SmtpServer $SmtpServer -Credential $credential
         Write-Host "  Report emailed successfully to $($To -join ', ')" -ForegroundColor Green
     }
     catch {

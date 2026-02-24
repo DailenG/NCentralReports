@@ -37,8 +37,9 @@ Install-Module Mailozaurr -Scope CurrentUser
 Import-Module .\NCentralReports.psd1 -Force
 
 # No need to set environment variables or pass credentials!
-# The first time you run the report, it will securely prompt you for your
-# N-Central Server FQDN and JWT token and save them locally.
+# The first time you run the report with email enabled, it will quickly securely prompt
+# for your SMTP server, sender address, and email credentials, saving them locally alongside
+# the N-Central JWT.
 
 # Run against all devices, generate Excel, open on completion
 Invoke-NCentralPatchReport
@@ -47,7 +48,7 @@ Invoke-NCentralPatchReport
 Invoke-NCentralPatchReport -ExportHTML
 
 # Run, generate Excel, don't open browser, and email to me
-Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoShow -SendEmail -SendTo "admin@widedata.com" -SmtpFrom "reports@widedata.com" -SmtpServer "smtp.widedata.com"
+Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoShow -SendEmail -SendTo "admin@widedata.com"
 ```
 
 ---
@@ -70,8 +71,6 @@ Invoke-NCentralPatchReport -CustomerName "Acme Corp" -StatusFilter Failed -NoSho
 | `IncludeHealthy` | switch | _(off)_ | Include healthy devices in the All Devices tab |
 | `SendEmail` | switch | _(off)_ | Triggers emailing the generated document via Mailozaurr |
 | `SendTo` | string[] | | Recipient email addresses. Required if `-SendEmail` used. |
-| `SmtpFrom` | string | | Sender email address. Required if `-SendEmail` used. |
-| `SmtpServer` | string | | SMTP server hostname or IP. Required if `-SendEmail` used. |
 
 ---
 

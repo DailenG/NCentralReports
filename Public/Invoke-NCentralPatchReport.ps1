@@ -98,8 +98,6 @@ function Invoke-NCentralPatchReport {
         # Email Options
         [switch]$SendEmail,
         [string[]]$SendTo,
-        [string]$SmtpFrom,
-        [string]$SmtpServer,
 
         # Tuning
         [switch]$IncludeHealthy
@@ -110,8 +108,8 @@ function Invoke-NCentralPatchReport {
     # ── Step 0: Validate prerequisites ────────────────────────────────────────────
 
     if ($SendEmail) {
-        if (-not $SendTo -or -not $SmtpFrom -or -not $SmtpServer) {
-            throw "To send an email, you must provide -SendTo, -SmtpFrom, and -SmtpServer."
+        if (-not $SendTo) {
+            throw "To send an email, you must provide the -SendTo recipient list."
         }
     }
 
@@ -119,11 +117,12 @@ function Invoke-NCentralPatchReport {
         $OutputPath = $OutputPath -replace '\.xlsx$', '.html'
     }
 
-    if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT)) {
-        Write-Verbose "Missing explicit ServerFQDN or JWT parameters; loading configuration..."
-        $config = Get-NCentralConfig
-        $ServerFQDN = $config.ServerFQDN
-        $JWT = $config.JWT
+    if ([string]::IsNullOrWhiteSpace($ServerFQDN) -or [string]::IsNullOrWhiteSpace($JWT) -or $SendEmail) {
+        Write-Verbose "Loading configuration..."
+        $config = Get-NCentralConfig -RequireSMTP:$SendEmail.IsPresent
+        
+        if ([string]::IsNullOrWhiteSpace($ServerFQDN)) { $ServerFQDN = $config.ServerFQDN }
+        if ([string]::IsNullOrWhiteSpace($JWT)) { $JWT = $config.JWT }
     }
 
 
@@ -350,7 +349,9 @@ function Invoke-NCentralPatchReport {
 
     if ($SendEmail) {
         Write-Host "`nSending email..." -ForegroundColor Yellow
-        Send-NCEReportEmail -FilePath $resolvedPath -To $SendTo -From $SmtpFrom -SmtpServer $SmtpServer
+        Send-NCEReportEmail -FilePath $resolvedPath -To $SendTo `
+            -From $config.SmtpFrom -SmtpServer $config.SmtpServer `
+            -SmtpUsername $config.SmtpUser -SmtpPassword $config.SmtpPassword
     }
 
     # ── Step 8: Open report ────────────────────────────────────────────────────────
