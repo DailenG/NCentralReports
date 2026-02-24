@@ -321,7 +321,8 @@ if ($StatusFilter -ne 'All') {
 Write-Host "`nGenerating HTML report..." -ForegroundColor Yellow
 
 New-PatchManagementReport -ReportData $filteredRows `
-    -OutputPath $OutputPath
+    -OutputPath $OutputPath `
+    -TotalDevicesScanned $deviceCount
 
 $resolvedPath = Resolve-Path $OutputPath -ErrorAction SilentlyContinue
 if (-not $resolvedPath) { $resolvedPath = $OutputPath }
