@@ -9,8 +9,8 @@
         Base URL including protocol.
     .PARAMETER Headers
         Hashtable containing Authorization Bearer token.
-    .PARAMETER CustomerId
-        Filter to a specific customer. 0 = no filter (all customers).
+    .PARAMETER CustomerIds
+        Filter to a specific customer or array of customers. Empty array = no filter.
     .PARAMETER SiteId
         Filter to a specific site. 0 = no filter (all sites).
     .PARAMETER DeviceNameFilter
@@ -24,8 +24,8 @@
         [Parameter(Mandatory)]
         [hashtable]$Headers,
 
-        [int]$CustomerId       = 0,
-        [int]$SiteId           = 0,
+        [int[]]$CustomerIds = @(),
+        [int]$SiteId = 0,
         [string]$DeviceNameFilter = ''
     )
 
@@ -36,13 +36,13 @@
         $queryParams['siteId'] = $SiteId
     }
 
-    if ($CustomerId -gt 0) {
-        # Using global endpoint with strict customerId filter as defined in Device schema
-        $queryParams['customerId'] = $CustomerId
+    if ($CustomerIds.Count -gt 0) {
+        # Using the standard N-Central 'select' expression to query multiple customers at once
+        $queryParams['select'] = "customerId,in,$($CustomerIds -join ',')"
     }
 
     $allDevices = @(Get-NCPagedResults -BaseUri $BaseUri -Endpoint '/api/devices' `
-                                       -Headers $Headers -QueryParams $queryParams)
+            -Headers $Headers -QueryParams $queryParams)
 
     # Convert to strict standardized types based on OpenAPI Device schema.
     $devices = [System.Collections.Generic.List[object]]::new()

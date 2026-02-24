@@ -194,11 +194,9 @@ Write-Host "`nEnumerating devices..." -ForegroundColor Yellow
 $allDevices = @()
 
 if ($targetCustomerIds.Count -gt 0) {
-    foreach ($cId in $targetCustomerIds) {
-        $customerDevices = Get-NCDevices -BaseUri $baseUri -Headers $headers `
-            -CustomerId $cId -DeviceNameFilter $DeviceName
-        $allDevices += $customerDevices
-    }
+    # Send the batch of Target Customer IDs natively to the new 'select' expression
+    $allDevices = Get-NCDevices -BaseUri $baseUri -Headers $headers `
+        -CustomerIds $targetCustomerIds -DeviceNameFilter $DeviceName
 }
 else {
     $allDevices = Get-NCDevices -BaseUri $baseUri -Headers $headers `
@@ -322,18 +320,8 @@ if ($StatusFilter -ne 'All') {
 
 Write-Host "`nGenerating HTML report..." -ForegroundColor Yellow
 
-$scopeDesc = @()
-if ($CustomerName) { $scopeDesc += "Customer: $CustomerName" }
-if ($CustomerId) { $scopeDesc += "CustomerId: $CustomerId" }
-if ($SiteName) { $scopeDesc += "Site: $SiteName" }
-if ($SiteId) { $scopeDesc += "SiteId: $SiteId" }
-if ($DeviceName) { $scopeDesc += "Device: $DeviceName" }
-if ($StatusFilter -ne 'All') { $scopeDesc += "Filter: $StatusFilter" }
-$generatedBy = if ($scopeDesc.Count -gt 0) { $scopeDesc -join ' | ' } else { 'All devices' }
-
 New-PatchManagementReport -ReportData $filteredRows `
-    -OutputPath $OutputPath `
-    -GeneratedBy $generatedBy
+    -OutputPath $OutputPath
 
 $resolvedPath = Resolve-Path $OutputPath -ErrorAction SilentlyContinue
 if (-not $resolvedPath) { $resolvedPath = $OutputPath }

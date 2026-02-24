@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:developer.n-able.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:documentation.n-able.com)",
+      "WebFetch(domain:evotec.xyz)",
+      "Bash(git -C /c/Code/GitHub/daileng/NCentralReports log --oneline -20)",
+      "Bash(powershell -Command:*)",
+      "Bash(pwsh -NoProfile:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:n-central.example.com)"
+    ]
+  }
+}

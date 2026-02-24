@@ -19,8 +19,8 @@
         Full path for the output HTML file.
     .PARAMETER ReportTitle
         Optional custom title. Defaults to 'N-Central Patch Management Report'.
-    .PARAMETER GeneratedBy
-        String describing the scope/filters used, shown in the report header.
+    .PARAMETER ReportTitle
+        Optional custom title. Defaults to 'Patch Management Analysis'.
     .EXAMPLE
         New-PatchManagementReport -ReportData $rows -OutputPath '.\report.html'
     #>
@@ -33,9 +33,7 @@
         [Parameter(Mandatory)]
         [string]$OutputPath,
 
-        [string]$ReportTitle = 'N-Central Patch Management Report',
-
-        [string]$GeneratedBy = ''
+        [string]$ReportTitle = 'Patch Management Analysis'
     )
 
     # Verify PSWriteHTML is available
@@ -86,13 +84,16 @@
     # ── Build the HTML report ──────────────────────────────────────────────────
 
     $generatedAt = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    $subtitle = if ($GeneratedBy) { " — $GeneratedBy" } else { '' }
 
     New-HTML -TitleText $ReportTitle -FilePath $OutputPath -ShowHTML:$false {
 
         New-HTMLHeader {
-            New-HTMLText -Text "$ReportTitle$subtitle" -FontSize 22 -FontWeight bold -Color '#2c3e50'
-            New-HTMLText -Text "Generated: $generatedAt" -FontSize 12 -Color '#7f8c8d'
+            New-HTMLText -Text $ReportTitle -FontSize 32 -FontWeight bold -Color '#2c3e50'
+            New-HTMLText -Text "Detailed Device Analysis" -FontSize 18 -Color '#34495e'
+            New-HTMLText -Text "Generated: $generatedAt" -FontSize 14 -Color '#7f8c8d'
+            if ($GeneratedBy) {
+                New-HTMLText -Text "Scope: $GeneratedBy" -FontSize 12 -Color '#95a5a6'
+            }
         }
 
         # ── Tab 1: Overview ────────────────────────────────────────────────────
@@ -102,26 +103,27 @@
             New-HTMLSection -Direction row -Invisible {
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices Scanned' -Number $total `
-                        -TitleColor '#2c3e50' -NumberColor '#2980b9' -Icon 'fas fa-server'
+                        -TitleColor '#7f8c8d' -NumberColor '#3498db' -Icon 'fas fa-server' -IconColor '#3498db'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices with Issues' -Number $issueCount `
-                        -TitleColor '#2c3e50' -NumberColor '#e74c3c' -Icon 'fas fa-exclamation-triangle'
+                        -TitleColor '#7f8c8d' -NumberColor '#e74c3c' -Icon 'fas fa-exclamation-triangle' -IconColor '#e74c3c'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Healthy %' -Number "$pct%" `
-                        -TitleColor '#2c3e50' -NumberColor '#27ae60' -Icon 'fas fa-check-circle'
+                        -TitleColor '#7f8c8d' -NumberColor '#27ae60' -Icon 'fas fa-check-circle' -IconColor '#27ae60'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Critical Failures' -Number $critical `
-                        -TitleColor '#2c3e50' -NumberColor '#c0392b' -Icon 'fas fa-times-circle'
+                        -TitleColor '#7f8c8d' -NumberColor '#9b59b6' -Icon 'fas fa-times-circle' -IconColor '#9b59b6'
                 }
             }
 
             # Charts side by side
-            New-HTMLSection -Direction row -HeaderText 'Status Distribution' {
+            New-HTMLSection -Direction row {
                 New-HTMLPanel {
-                    New-HTMLChart -Title 'PME Status Distribution' -Height 300 {
+                    New-HTMLText -Text "📊 PME Status Distribution" -FontWeight bold
+                    New-HTMLChart -Title 'Distribution' -Height 350 {
                         New-ChartToolbar -Download
                         if ($failCount -gt 0) {
                             New-ChartDonut -Name 'Failed'  -Value $failCount  -Color '#e74c3c'
@@ -130,7 +132,7 @@
                             New-ChartDonut -Name 'Warning' -Value $warnCount  -Color '#f39c12'
                         }
                         if ($okCount -gt 0) {
-                            New-ChartDonut -Name 'Healthy' -Value $okCount    -Color '#2ecc71'
+                            New-ChartDonut -Name 'Healthy' -Value $okCount    -Color '#27ae60'
                         }
                         if ($total -eq 0) {
                             New-ChartDonut -Name 'No Data' -Value 1           -Color '#bdc3c7'
@@ -139,20 +141,23 @@
                 }
                 New-HTMLPanel {
                     if ($byCustomer -and @($byCustomer).Count -gt 0) {
-                        New-HTMLChart -Title 'Issues by Customer' -Height 300 {
+                        New-HTMLText -Text "🏢 Issues by Customer" -FontWeight bold
+                        New-HTMLChart -Title 'Count' -Height 350 {
+                            New-ChartOptionBar -Horizontal
                             New-ChartToolbar -Download
                             New-ChartAxisX -Name ($byCustomer | Select-Object -ExpandProperty Name)
-                            New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#e67e22'
+                            New-ChartBar -Name 'Issue Count' -Value ($byCustomer | Select-Object -ExpandProperty Count) -Color '#2c3e50'
                         }
                     }
                     else {
-                        New-HTMLText -Text 'No customer issue data to chart.' -Color '#7f8c8d'
+                        New-HTMLText -Text "🏢 Issues by Customer" -FontWeight bold
+                        New-HTMLText -Text 'No customer issue data to chart.' -Color '#bdc3c7'
                     }
                 }
             }
 
             # Top 10 quick-view
-            New-HTMLSection -HeaderText 'Top 10 Issues' -CanCollapse {
+            New-HTMLSection -HeaderText '🔥 Top 10 Most Recent Issues' -CanCollapse {
                 if ($top10 -and @($top10).Count -gt 0) {
                     New-HTMLTable -DataTable $top10 -DisablePaging -DisableSearch -HideFooter {
                         New-TableCondition -Name 'ServiceState' -Value 'Failed'  -Operator eq `
@@ -162,14 +167,14 @@
                     }
                 }
                 else {
-                    New-HTMLText -Text 'No patch issues found.' -Color '#27ae60' -FontWeight bold
+                    New-HTMLText -Text 'No patch issues found.' -FontWeight bold
                 }
             }
         }
 
         # ── Tab 2: PME Issues ──────────────────────────────────────────────────
         New-HTMLTab -Name 'PME Issues' -IconSolid 'exclamation-triangle' {
-            New-HTMLSection -HeaderText "Affected Devices ($issueCount)" {
+            New-HTMLSection -HeaderText "⚠️ Affected Devices ($issueCount)" {
                 if ($issueRows -and @($issueRows).Count -gt 0) {
                     New-HTMLTable -DataTable $issueRows `
                         -Filtering `
@@ -187,14 +192,14 @@
                 }
                 else {
                     New-HTMLText -Text 'No patch issues found — all devices are healthy.' `
-                        -Color '#27ae60' -FontWeight bold -FontSize 16
+                        -FontWeight bold -FontSize 16
                 }
             }
         }
 
         # ── Tab 3: Error Catalog ───────────────────────────────────────────────
         New-HTMLTab -Name 'Error Catalog' -IconSolid 'list-alt' {
-            New-HTMLSection -HeaderText 'Unique PME Error Messages' {
+            New-HTMLSection -HeaderText '📖 Unique PME Error Messages' {
                 if ($errorCatalog -and @($errorCatalog).Count -gt 0) {
                     New-HTMLTable -DataTable $errorCatalog `
                         -Filtering `
@@ -208,17 +213,16 @@
                     }
                 }
                 else {
-                    New-HTMLText -Text 'No PME error messages found.' -Color '#27ae60' -FontWeight bold
+                    New-HTMLText -Text 'No PME error messages found.' -FontWeight bold
                 }
             }
         }
 
         # ── Tab 4: All Devices ─────────────────────────────────────────────────
         New-HTMLTab -Name 'All Devices' -IconSolid 'server' {
-            New-HTMLSection -HeaderText "Complete Device Status ($total devices)" -CanCollapse {
+            New-HTMLSection -HeaderText "📋 Complete Device Status ($total devices)" -CanCollapse {
                 if ($allRows -and @($allRows).Count -gt 0) {
-                    $allDeviceRows = $allRows | Select-Object DeviceName, CustomerName, SiteName,
-                    PatchState, PMEStatus
+                    $allDeviceRows = $allRows | Select-Object DeviceName, CustomerName, SiteName, PatchState, PMEStatus
 
                     New-HTMLTable -DataTable $allDeviceRows -Filtering {
                         New-TableCondition -Name 'PatchState' -Value 'Normal' -Operator eq `
@@ -230,10 +234,14 @@
                     }
                 }
                 else {
-                    New-HTMLText -Text 'No device data available. Run with -IncludeHealthy to populate this tab.' `
-                        -Color '#7f8c8d'
+                    New-HTMLText -Text 'No device data available. Run with -IncludeHealthy to populate this tab.'
                 }
             }
+        }
+
+        New-HTMLFooter {
+            New-HTMLText -Text "Application Analysis Report: Patch Management" -Color '#34495e' -FontWeight bold -FontSize 14
+            New-HTMLText -Text "Generated using PSWriteHTML" -Color '#7f8c8d' -FontSize 12
         }
 
     }  # end New-HTML
