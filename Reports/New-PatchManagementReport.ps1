@@ -33,6 +33,8 @@
         [Parameter(Mandatory)]
         [string]$OutputPath,
 
+        [int]$TotalDevicesScanned = 0,
+
         [string]$ReportTitle = 'Patch Management Analysis'
     )
 
@@ -48,7 +50,7 @@
     $allRows = @($ReportData)
 
     # KPI counts
-    $total = $allRows.Count
+    $total = if ($TotalDevicesScanned -gt 0) { $TotalDevicesScanned } else { $allRows.Count }
     $issueCount = $issueRows.Count
     $okCount = $total - $issueCount
     $pct = if ($total -gt 0) { [Math]::Round(($okCount / $total) * 100, 1) } else { 0 }
@@ -103,19 +105,19 @@
             New-HTMLSection -Direction row -Invisible {
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices Scanned' -Number $total `
-                        -TitleColor '#7f8c8d' -NumberColor '#3498db' -Icon 'fas fa-server' -IconColor '#3498db'
+                        -TitleColor '#7f8c8d' -NumberColor '#3498db' -IconSolid 'server' -IconColor '#3498db'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Devices with Issues' -Number $issueCount `
-                        -TitleColor '#7f8c8d' -NumberColor '#e74c3c' -Icon 'fas fa-exclamation-triangle' -IconColor '#e74c3c'
+                        -TitleColor '#7f8c8d' -NumberColor '#e74c3c' -IconSolid 'exclamation-triangle' -IconColor '#e74c3c'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Healthy %' -Number "$pct%" `
-                        -TitleColor '#7f8c8d' -NumberColor '#27ae60' -Icon 'fas fa-check-circle' -IconColor '#27ae60'
+                        -TitleColor '#7f8c8d' -NumberColor '#27ae60' -IconSolid 'check-circle' -IconColor '#27ae60'
                 }
                 New-HTMLPanel {
                     New-HTMLInfoCard -Title 'Critical Failures' -Number $critical `
-                        -TitleColor '#7f8c8d' -NumberColor '#9b59b6' -Icon 'fas fa-times-circle' -IconColor '#9b59b6'
+                        -TitleColor '#7f8c8d' -NumberColor '#9b59b6' -IconSolid 'times-circle' -IconColor '#9b59b6'
                 }
             }
 
