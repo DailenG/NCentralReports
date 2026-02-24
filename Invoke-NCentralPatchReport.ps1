@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Generates an HTML patch management report from N-Central monitored-service data.
 
@@ -79,14 +79,14 @@
 param(
     [string]$ServerFQDN = 'n-central.example.com',
 
-    [string]$JWT        = $env:NCentral_JWT,
+    [string]$JWT = $env:NCentral_JWT,
 
     # Scope filters
-    [string]$CustomerName     = '',
-    [int]$CustomerId          = 0,
-    [string]$SiteName         = '',
-    [int]$SiteId              = 0,
-    [string]$DeviceName       = '',
+    [string]$CustomerName = '',
+    [int]$CustomerId = 0,
+    [string]$SiteName = '',
+    [int]$SiteId = 0,
+    [string]$DeviceName = '',
 
     # Status filter
     [ValidateSet('All', 'Failed', 'Warning')]
@@ -97,8 +97,6 @@ param(
     [switch]$NoShow,
 
     # Tuning
-    [ValidateRange(1, 1000)]
-    [int]$PageSize       = 100,
     [switch]$IncludeHealthy
 )
 
@@ -108,7 +106,7 @@ $ErrorActionPreference = 'Stop'
 
 if ([string]::IsNullOrWhiteSpace($JWT)) {
     throw "No JWT provided. Set `$env:NCentral_JWT or pass -JWT. " +
-          "Generate a JWT from N-Central Administration > User Management > API Access."
+    "Generate a JWT from N-Central Administration > User Management > API Access."
 }
 
 $scriptRoot = $PSScriptRoot
@@ -132,7 +130,7 @@ Write-Host "Scope  : $(if ($CustomerName) { "Customer='$CustomerName'" } elseif 
 
 Write-Host "`nAuthenticating..." -ForegroundColor Yellow
 $accessToken = Get-NCAccessToken -ServerFQDN $ServerFQDN -JWT $JWT
-$headers     = @{ Authorization = "Bearer $accessToken" }
+$headers = @{ Authorization = "Bearer $accessToken" }
 Write-Host "  Access token obtained." -ForegroundColor Green
 
 # ── Step 2: Resolve scope — customers and sites ────────────────────────────────
@@ -150,10 +148,10 @@ if ($CustomerId -gt 0) {
 elseif (-not [string]::IsNullOrWhiteSpace($CustomerName)) {
     # Partial name match
     $customers = Get-NCCustomers -BaseUri $baseUri -Headers $headers
-    $matched   = @($customers | Where-Object {
-        $_.customerName -like "*$CustomerName*" -or
-        $_.name         -like "*$CustomerName*"
-    })
+    $matched = @($customers | Where-Object {
+            $_.customerName -like "*$CustomerName*" -or
+            $_.name -like "*$CustomerName*"
+        })
     if ($matched.Count -eq 0) {
         Write-Warning "No customers matched '$CustomerName'. Proceeding with all customers."
     }
@@ -181,9 +179,9 @@ elseif (-not [string]::IsNullOrWhiteSpace($SiteName)) {
     foreach ($cId in $customerIdsForSites) {
         $sites = Get-NCSites -BaseUri $baseUri -Headers $headers -CustomerId $cId
         $matchedSites = @($sites | Where-Object {
-            $_.siteName -like "*$SiteName*" -or
-            $_.name     -like "*$SiteName*"
-        })
+                $_.siteName -like "*$SiteName*" -or
+                $_.name -like "*$SiteName*"
+            })
         $targetSiteIds += @($matchedSites | ForEach-Object { $_.siteId ?? $_.id })
     }
     Write-Host "  Site filter '$SiteName' matched $($targetSiteIds.Count) site(s)."
@@ -198,21 +196,21 @@ $allDevices = @()
 if ($targetCustomerIds.Count -gt 0) {
     foreach ($cId in $targetCustomerIds) {
         $customerDevices = Get-NCDevices -BaseUri $baseUri -Headers $headers `
-                                         -CustomerId $cId -DeviceNameFilter $DeviceName
+            -CustomerId $cId -DeviceNameFilter $DeviceName
         $allDevices += $customerDevices
     }
 }
 else {
     $allDevices = Get-NCDevices -BaseUri $baseUri -Headers $headers `
-                                -DeviceNameFilter $DeviceName
+        -DeviceNameFilter $DeviceName
 }
 
 # Apply site filter client-side if needed
 if ($targetSiteIds.Count -gt 0) {
-    $before     = $allDevices.Count
+    $before = $allDevices.Count
     $allDevices = @($allDevices | Where-Object {
-        ($_.siteId ?? $_.locationId ?? $_.site) -in $targetSiteIds
-    })
+            ($_.siteId ?? $_.locationId ?? $_.site) -in $targetSiteIds
+        })
     Write-Host "  Site filter reduced $before → $($allDevices.Count) devices."
 }
 
@@ -226,42 +224,41 @@ if ($allDevices.Count -eq 0) {
 
 Write-Host "`nScanning patch services..." -ForegroundColor Yellow
 
-$reportRows   = [System.Collections.Generic.List[PSCustomObject]]::new()
-$deviceCount  = 0
-$issueCount   = 0
-$total        = $allDevices.Count
+$reportRows = [System.Collections.Generic.List[PSCustomObject]]::new()
+$deviceCount = 0
+$issueCount = 0
+$total = $allDevices.Count
 
 foreach ($device in $allDevices) {
     $deviceCount++
 
-    # Extract device properties — field names confirmed at runtime via -Verbose
-    $deviceId   = $device.deviceId   ?? $device.id
-    $deviceName = $device.deviceName ?? $device.longName ?? $device.hostname ?? "Device-$deviceId"
-    $custName   = $device.customerName ?? $device.organizationName ?? ''
-    $siteName   = $device.siteName    ?? $device.locationName      ?? ''
+    # Extract device properties — strictly typed from Get-NCDevices
+    $deviceId = $device.DeviceId
+    $deviceName = $device.DeviceName
+    $custName = $device.CustomerName
+    $siteName = $device.SiteName
 
     # Progress indicator
-    if ($deviceCount % 10 -eq 0 -or $deviceCount -eq $total) {
-        Write-Host "  [$deviceCount/$total] Scanning device: $deviceName" -ForegroundColor Gray
-    }
+    $percent = [math]::Round(($deviceCount / $total) * 100)
+    Write-Progress -Activity "Scanning Devices for Patch Status" -Status "Device $deviceCount of $total ($percent%) : $deviceName" -PercentComplete $percent
 
-    # Fetch degraded patch services
-    $patchServices = Get-NCPatchServices -BaseUri $baseUri -Headers $headers -DeviceId $deviceId
+    # Fetch degraded patch services using the new endpoint
+    $patchServices = Get-NCServiceMonitorStatus -BaseUri $baseUri -Headers $headers -DeviceId $deviceId
 
     if ($null -eq $patchServices -or @($patchServices).Count -eq 0) {
         # Device is healthy (no degraded patch services)
         if ($IncludeHealthy) {
             $reportRows.Add([PSCustomObject]@{
-                DeviceName         = $deviceName
-                CustomerName       = $custName
-                SiteName           = $siteName
-                ServiceState       = 'Normal'
-                PMEThresholdStatus = 'N/A'
-                PMEStatus          = 'N/A'
-                LastChecked        = $null
-                PatchState         = 'Normal'
-                DeviceId           = $deviceId
-            })
+                    DeviceName         = $deviceName
+                    CustomerName       = $custName
+                    SiteName           = $siteName
+                    ServiceState       = 'Normal'
+                    PMEThresholdStatus = 'N/A'
+                    PMEStatus          = 'N/A'
+                    LastChecked        = $null
+                    PatchState         = 'Normal'
+                    DeviceId           = $deviceId
+                })
         }
         continue
     }
@@ -270,13 +267,13 @@ foreach ($device in $allDevices) {
     foreach ($svc in $patchServices) {
         $issueCount++
 
-        $serviceState = $svc.state ?? $svc.serviceState ?? $svc.status ?? 'Unknown'
-        $lastChecked  = $svc.lastCheckTime ?? $svc.lastStatusChange ?? $null
+        $serviceState = $svc.StateStatus
+        $lastChecked = $null
 
-        # Extract task ID — field name to confirm at runtime
-        $taskId = $svc.taskId ?? $svc.serviceId ?? $svc.applianceTaskId ?? $null
+        # Extract task ID — strictly mapped from Get-NCServiceMonitorStatus
+        $taskId = [string]$svc.TaskId
 
-        $pmeStatus          = 'N/A'
+        $pmeStatus = 'N/A'
         $pmeThresholdStatus = 'N/A'
 
         if (-not [string]::IsNullOrWhiteSpace($taskId)) {
@@ -284,8 +281,8 @@ foreach ($device in $allDevices) {
             $taskObj = Get-NCApplianceTask -BaseUri $baseUri -Headers $headers -TaskId $taskId
 
             if ($null -ne $taskObj) {
-                $details            = Get-NCPatchDetails -TaskObject $taskObj
-                $pmeStatus          = $details.PMEStatus
+                $details = Get-NCPatchDetails -TaskObject $taskObj
+                $pmeStatus = $details.PMEStatus
                 $pmeThresholdStatus = $details.PMEThresholdStatus
             }
             else {
@@ -297,16 +294,16 @@ foreach ($device in $allDevices) {
         }
 
         $reportRows.Add([PSCustomObject]@{
-            DeviceName         = $deviceName
-            CustomerName       = $custName
-            SiteName           = $siteName
-            ServiceState       = $serviceState
-            PMEThresholdStatus = $pmeThresholdStatus
-            PMEStatus          = $pmeStatus
-            LastChecked        = $lastChecked
-            PatchState         = $serviceState
-            DeviceId           = $deviceId
-        })
+                DeviceName         = $deviceName
+                CustomerName       = $custName
+                SiteName           = $siteName
+                ServiceState       = $serviceState
+                PMEThresholdStatus = $pmeThresholdStatus
+                PMEStatus          = $pmeStatus
+                LastChecked        = $lastChecked
+                PatchState         = $serviceState
+                DeviceId           = $deviceId
+            })
     }
 }
 
@@ -326,17 +323,17 @@ if ($StatusFilter -ne 'All') {
 Write-Host "`nGenerating HTML report..." -ForegroundColor Yellow
 
 $scopeDesc = @()
-if ($CustomerName)  { $scopeDesc += "Customer: $CustomerName" }
-if ($CustomerId)    { $scopeDesc += "CustomerId: $CustomerId"  }
-if ($SiteName)      { $scopeDesc += "Site: $SiteName"          }
-if ($SiteId)        { $scopeDesc += "SiteId: $SiteId"          }
-if ($DeviceName)    { $scopeDesc += "Device: $DeviceName"      }
+if ($CustomerName) { $scopeDesc += "Customer: $CustomerName" }
+if ($CustomerId) { $scopeDesc += "CustomerId: $CustomerId" }
+if ($SiteName) { $scopeDesc += "Site: $SiteName" }
+if ($SiteId) { $scopeDesc += "SiteId: $SiteId" }
+if ($DeviceName) { $scopeDesc += "Device: $DeviceName" }
 if ($StatusFilter -ne 'All') { $scopeDesc += "Filter: $StatusFilter" }
 $generatedBy = if ($scopeDesc.Count -gt 0) { $scopeDesc -join ' | ' } else { 'All devices' }
 
 New-PatchManagementReport -ReportData $filteredRows `
-                          -OutputPath $OutputPath `
-                          -GeneratedBy $generatedBy
+    -OutputPath $OutputPath `
+    -GeneratedBy $generatedBy
 
 $resolvedPath = Resolve-Path $OutputPath -ErrorAction SilentlyContinue
 if (-not $resolvedPath) { $resolvedPath = $OutputPath }
