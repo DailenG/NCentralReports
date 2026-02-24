@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.1.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = 'Initial release of NCentralReports.'
+            ReleaseNotes             = '1.1.0: Introduced robust Excel reporting as default. Added Mailozaurr email automation integration. Implemented secure persistent SMTP configuration.'
 
             # Prerelease string of this module
             # Prerelease = ''
