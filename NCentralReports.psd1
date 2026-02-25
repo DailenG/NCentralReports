@@ -12,7 +12,7 @@
     RootModule        = 'NCentralReports.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.2.1'
+    ModuleVersion     = '1.2.3'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -110,7 +110,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes             = '1.2.2: Debugging and cleanup'
+            ReleaseNotes             = '1.2.3: Debugging and cleanup'
 
             # Prerelease string of this module
             # Prerelease = ''
